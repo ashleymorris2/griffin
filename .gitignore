@@ -1,0 +1,29 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Build directories
+/bin/
+/obj/
+
+# Dependency directories
+/vendor/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDEs/editors
+.vscode/
+.idea/
+*.swp
+
+# Go tools
+coverage.out
+
+# Logs
+*.log
