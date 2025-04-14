@@ -8,28 +8,15 @@ import (
 	"time"
 )
 
-type stepStage int
-
-const (
-	stageInit stepStage = iota
-	stageChecking
-	stageInstalling
-	stageDone
-)
-
-// Represents a single step in the init process
-type initStep struct {
-	name       string
-	command    string
-	status     stepStage
-	installURL string
+lURL   string
 }
 
 type initModel struct {
-	steps    []initStep
-	current  int
-	statuses []string
-	spinner  spinner.Model
+	dependencies []core.Dependency
+	current      int
+	statuses     []string
+	spinner      spinner.Model
+	finished     bool
 }
 
 type tickMsg struct{}
@@ -39,8 +26,8 @@ func newInitModel() initModel {
 	s.Spinner = spinner.Dot
 
 	return initModel{
-		steps: []initStep{
-			{name: "WSL", command: "wsl"},
+		dependencies: []core.Dependency{
+			{Name: "WSL", CheckCommand: "wsl"},
 		},
 		spinner: s,
 	}
@@ -56,64 +43,61 @@ func (m initModel) Init() tea.Cmd {
 }
 
 func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-
+	switch msg.(type) {
 	case tickMsg:
-		if m.current >= len(m.steps) {
+		if m.finished || m.current >= len(m.dependencies) {
+			m.finished = true
 			return m, tea.Quit
 		}
 
-		currentStep := &m.steps[m.current]
+		dependency := &m.dependencies[m.current]
 
-		switch currentStep.status {
-		case stageInit:
-			currentStep.status = stageChecking
-			return m, tea.Tick(time.Millisecond*500, func(t time.Time) tea.Msg {
-				return tickMsg{}
-			})
-		case stageChecking:
-			currentStep.found = core.DependencyExists(step.command)
+		switch dependency.Status {
+		case core.Initial:
+			dependency.Status = core.Checking
+			return m, tickAfter(500 * time.Millisecond)
+		case core.Checking:
+			dependency.Check()
 
-			if core.DependencyExists(currentStep.name) {
-				m.statuses = append(m.statuses, fmt.Sprintf("%s found", currentStep.name))
-			} else {
-
-			}
-
-			m.current++
 
 			// Schedule next tick after short delay
-			return m, tea.Tick(time.Millisecond*5000, func(t time.Time) tea.Msg {
-				return tickMsg{}
-			})
-		case stageInstalling:
-		case stageDone:
+			return m, tickAfter(500 * time.Millisecond)
+		case core.Installing:
+			//todo run install logic here
+			dependency.Status = done
+			m.current++
+			return m, tickAfter(500 * time.Millisecond)
+		case core.Done:
+			return m, tea.Quit
 		}
-
-	default:
-		// Update spinner
-		var cmd tea.Cmd
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
 	}
+
+	// Done with all steps?
+	if m.current >= len(m.dependencies) {
+		m.finished = true
+		return m, tea.Quit
+	}
+
+	return m, nil
 }
 
 func (m initModel) View() string {
-	if m.done {
+	if m.finished {
 		out := "\nSummary:\n"
-		for _, s := range m.statuses {
-			out += s + "\n"
+		for _, d := range m.dependencies {
+			out += renderOutput(d) + "\n"
 		}
 		out += "\nPress Ctrl+C to exit.\n"
 		return out
 	}
 
-	if m.current >= len(m.steps) {
-		return fmt.Sprintf("%s Finishing up.", m.spinner.View())
+	out := "\n"
+
+	for _, d := range m.dependencies {
+		out += renderOutput(d) + "\n"
 	}
 
-	currentStep := m.steps[m.current].name
-	return fmt.Sprintf("%s Checking for %s...\n", m.spinner.View(), currentStep)
+	return out
 }
 
 func RunBootstrapUI() error {
@@ -126,4 +110,26 @@ func RunBootstrapUI() error {
 	}
 
 	return nil
+}
+
+func tickAfter(d time.Duration) tea.Cmd {
+	return tea.Tick(d, func(t time.Time) tea.Msg {
+		return tickMsg{}
+	})
+}
+
+func renderOutput(d core.Dependency) string {
+	switch d.Status {
+	case core.Done:
+		if d.Found {
+			return fmt.Sprintf("✅ %s found", d.Name)
+		}
+		return fmt.Sprintf("⚠️  %s not found. Installed manually or skipped.", d.Name)
+	case checking:
+		return fmt.Sprintf("🔍 Checking for %s...", d.Name)
+	case installing:
+		return fmt.Sprintf("⬇️  Install required for %s → %s", d.Name, d.InstallURL)
+	default:
+		return fmt.Sprintf("⏺️  Waiting to check %s", d.Name)
+	}
 }
