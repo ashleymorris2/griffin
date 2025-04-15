@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ashleymorris2/booty/internal/ui"
+	"github.com/ashleymorris2/booty/internal/ui/init"
 
 	"github.com/spf13/cobra"
 )
@@ -12,7 +12,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialises ",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := ui.RunBootstrapUI()
+		err := init.Run()
 		if err != nil {
 			return err
 		}

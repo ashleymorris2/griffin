@@ -14,6 +14,7 @@ type Dependency struct {
 	CheckCommand string
 	Status       StepStage
 	Found        bool
+	Installed    bool
 	InstallURL   string
 }
 
@@ -26,7 +27,7 @@ func (d *Dependency) Check() (bool, StepStage) {
 	}
 }
 
-func (d *Dependency) RunInstall() {
+func (d *Dependency) Install() (bool, StepStage) {
 	// TODO: add real install logic (e.g., download, run command, etc.)
-	d.Status = Done
+	return false, Done
 }

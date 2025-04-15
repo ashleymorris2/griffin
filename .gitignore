@@ -27,3 +27,6 @@ coverage.out
 
 # Logs
 *.log
+
+# Local Testing
+test.yml

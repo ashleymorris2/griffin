@@ -8,10 +8,7 @@ import (
 	"time"
 )
 
-lURL   string
-}
-
-type initModel struct {
+type dependenciesModel struct {
 	dependencies []core.Dependency
 	current      int
 	statuses     []string
@@ -21,11 +18,11 @@ type initModel struct {
 
 type tickMsg struct{}
 
-func newInitModel() initModel {
+func newDependenciesModel() dependenciesModel {
 	s := spinner.New()
 	s.Spinner = spinner.Dot
 
-	return initModel{
+	return dependenciesModel{
 		dependencies: []core.Dependency{
 			{Name: "WSL", CheckCommand: "wsl"},
 		},
@@ -33,16 +30,16 @@ func newInitModel() initModel {
 	}
 }
 
-func (m initModel) Init() tea.Cmd {
+func (m dependenciesModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		tea.Tick(time.Millisecond*100, func(t time.Time) tea.Msg {
+		tea.Tick(time.Millisecond*400, func(t time.Time) tea.Msg {
 			return tickMsg{}
 		}),
 	)
 }
 
-func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m dependenciesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case tickMsg:
 		if m.finished || m.current >= len(m.dependencies) {
@@ -50,29 +47,24 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
-		dependency := &m.dependencies[m.current]
+		dep := &m.dependencies[m.current]
 
-		switch dependency.Status {
+		switch dep.Status {
 		case core.Initial:
-			dependency.Status = core.Checking
+			dep.Status = core.Checking
 			return m, tickAfter(500 * time.Millisecond)
 		case core.Checking:
-			dependency.Check()
-
-
-			// Schedule next tick after short delay
+			dep.Found, dep.Status = dep.Check()
 			return m, tickAfter(500 * time.Millisecond)
 		case core.Installing:
-			//todo run install logic here
-			dependency.Status = done
-			m.current++
+			dep.Installed, dep.Status = dep.Install()
 			return m, tickAfter(500 * time.Millisecond)
 		case core.Done:
-			return m, tea.Quit
+			m.current++
 		}
 	}
 
-	// Done with all steps?
+	// Done
 	if m.current >= len(m.dependencies) {
 		m.finished = true
 		return m, tea.Quit
@@ -81,29 +73,30 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m initModel) View() string {
+func (m dependenciesModel) View() string {
 	if m.finished {
 		out := "\nSummary:\n"
 		for _, d := range m.dependencies {
 			out += renderOutput(d) + "\n"
 		}
 		out += "\nPress Ctrl+C to exit.\n"
+
+		return out
+	} else {
+		out := "\nChecking:\n"
+
+		for _, d := range m.dependencies {
+			out += renderOutput(d) + "\n"
+		}
+
 		return out
 	}
-
-	out := "\n"
-
-	for _, d := range m.dependencies {
-		out += renderOutput(d) + "\n"
-	}
-
-	return out
 }
 
-func RunBootstrapUI() error {
-	fmt.Println("Initialising your environment...")
+func RunDependencyChecks() error {
+	fmt.Println("Checking dependencies...")
 
-	p := tea.NewProgram(newInitModel())
+	p := tea.NewProgram(newDependenciesModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("There's been an error: %v", err)
 		return err
@@ -124,12 +117,16 @@ func renderOutput(d core.Dependency) string {
 		if d.Found {
 			return fmt.Sprintf("✅ %s found", d.Name)
 		}
-		return fmt.Sprintf("⚠️  %s not found. Installed manually or skipped.", d.Name)
-	case checking:
+		if d.Installed {
+			return fmt.Sprintf("✅ %s installed.", d.Name)
+		}
+	case core.Checking:
 		return fmt.Sprintf("🔍 Checking for %s...", d.Name)
-	case installing:
+	case core.Installing:
 		return fmt.Sprintf("⬇️  Install required for %s → %s", d.Name, d.InstallURL)
 	default:
-		return fmt.Sprintf("⏺️  Waiting to check %s", d.Name)
+		return fmt.Sprintf("ℹ  Waiting to check %s", d.Name)
 	}
+
+	return fmt.Sprintf("❗ No status update available for %s", d.Name)
 }
