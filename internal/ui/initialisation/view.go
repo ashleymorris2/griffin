@@ -21,7 +21,7 @@ func (m initModel) Init() tea.Cmd {
 		m.spinner.Tick,
 		buildSetupCommands([]initStep{
 			{
-				displayName: "Create .devsetup folder",
+				displayName: "Ensure .devsetup folder exists",
 				run: func() error {
 					_, err := fs.EnsureDirExists(".devsetup")
 					return err
