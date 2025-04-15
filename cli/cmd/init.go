@@ -1,18 +1,18 @@
 package cmd
 
 import (
-	"github.com/ashleymorris2/booty/internal/ui/init"
+	"github.com/ashleymorris2/booty/internal/ui/initialisation"
 
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the init command
+// initCmd represents the initialisation command
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialises ",
 	Long:  ``,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := init.Run()
+		err := initialisation.Run()
 		if err != nil {
 			return err
 		}

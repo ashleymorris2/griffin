@@ -1,4 +1,4 @@
-package init
+package initialisation
 
 import (
 	"fmt"
@@ -6,19 +6,9 @@ import (
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
-	"time"
 )
 
-type initModel struct {
-	statuses []string
-	spinner  spinner.Model
-	finished bool
-}
-
-type initStep struct {
-	displayName string
-	run         func() error
-}
+type progressMsg string
 
 type initResultMsg struct {
 	Name   string
@@ -29,7 +19,15 @@ type initResultMsg struct {
 func (m initModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		createDirCmd("Create .devsetup folder", ".devsetup"),
+		buildSetupCommands([]initStep{
+			{
+				displayName: "Create .devsetup folder",
+				run: func() error {
+					_, err := fs.EnsureDirExists(".devsetup")
+					return err
+				},
+			},
+		}),
 	)
 }
 
@@ -38,9 +36,10 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 
-	case spinner.TickMsg:
-		m.spinner, cmd = m.spinner.Update(msg)
-		return m, cmd
+	case progressMsg:
+		newModel := m
+		newModel.statuses = append(newModel.statuses, string(msg))
+		return newModel, nil
 
 	case initResultMsg:
 		newModel := m
@@ -51,6 +50,10 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		newModel.finished = true
 		return newModel, tea.Quit
+
+	case spinner.TickMsg:
+		m.spinner, cmd = m.spinner.Update(msg)
+		return m, cmd
 
 	case tea.KeyMsg:
 		if msg.Type == tea.KeyCtrlC {
@@ -73,44 +76,4 @@ func (m initModel) View() string {
 	}
 
 	return b.String()
-}
-
-func Run() error {
-	p := tea.NewProgram(newInitModel())
-	finalModel, err := p.Run()
-	if err != nil {
-		fmt.Printf("There's been an error: %v", err)
-		return err
-	}
-
-	// Printing finalModel.View() keeps the final view on screen when exiting the program,
-	// otherwise it gets cleared
-	fmt.Println(finalModel.View())
-
-	return nil
-}
-
-func newInitModel() initModel {
-	s := spinner.New()
-	s.Spinner = spinner.Dot
-
-	return initModel{
-		spinner: s,
-	}
-}
-
-func createDirCmd(name, path string) tea.Cmd {
-	return func() tea.Msg {
-		_, err := fs.EnsureDirExists(path)
-		status := "created"
-		if err != nil {
-			status = "failed"
-		}
-		time.Sleep(5 * time.Second)
-		return initResultMsg{
-			Name:   name,
-			Result: status,
-			Err:    err,
-		}
-	}
 }
