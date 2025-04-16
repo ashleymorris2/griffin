@@ -6,33 +6,37 @@ import (
 	"path/filepath"
 )
 
-type DirStatus int
-
 const (
-	Created DirStatus = iota
-	Errored
-	Exists
+	failMsg    = "Environment setup failed."
+	createdMsg = "Environment ready."
+	skipMsg    = "Environment already exists. Skipping step."
 )
 
-// EnsureDirExists Returns true if a directory exists with the given name in $HOME on Linux and macOS or
+type PathStatus int
+
+const (
+	StatusCreated PathStatus = iota
+	StatusAlreadyExists
+	StatusFailed
+)
+
+// EnsurePathExistsInHome Returns true if a directory exists with the given name in $HOME on Linux and macOS or
 // %USERPROFILE% on Windows, and attempts to create it if it doesn't.
-func EnsureDirExists(path string) (DirStatus, error) {
+func EnsurePathExistsInHome(path string) (PathStatus, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
-		return Errored, err
+		return StatusFailed, fmt.Errorf("unable to find home directory: %w", err)
 	}
 
-	setupDir := filepath.Join(home, path)
-	if _, err := os.Stat(setupDir); os.IsNotExist(err) {
-		err := os.Mkdir(setupDir, 0700)
-		if err != nil {
-			return Errored, fmt.Errorf("failed to create setup directory: %w", err)
+	fullPath := filepath.Join(home, path)
+	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
+		if err := os.Mkdir(fullPath, 0700); err != nil {
+			return StatusFailed, fmt.Errorf("failed to create directory: %w", err)
 		}
+		return StatusCreated, nil
 	} else if err == nil {
-		return Exists, nil
+		return StatusAlreadyExists, nil
 	} else {
-		return Errored, fmt.Errorf("error checking directory: %w", err)
+		return StatusFailed, fmt.Errorf("error checking directory: %w", err)
 	}
-
-	return Created, nil
 }

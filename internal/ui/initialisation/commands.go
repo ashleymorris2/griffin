@@ -6,8 +6,9 @@ import (
 )
 
 type initStep struct {
-	displayName string
-	run         func() error
+	id      string
+	message string
+	run     func() (string, error)
 }
 
 func buildSetupCommands(steps []initStep) tea.Cmd {
@@ -16,21 +17,21 @@ func buildSetupCommands(steps []initStep) tea.Cmd {
 	for _, step := range steps {
 		step := step
 		cmds = append(cmds, func() tea.Msg {
-			return progressMsg(fmt.Sprintf("[%s] - Running", step.displayName))
+			return progressMsg{step.id, step.message}
 		})
 
 		cmds = append(cmds, func() tea.Msg {
-			err := step.run()
+			result, err := step.run()
 			if err != nil {
-				return progressMsg(fmt.Sprintf(" [%s] - failed: %v", step.displayName, err))
+				return progressMsg{stepId: step.id, message: fmt.Sprintf(" %s - %v", result, err)}
 			}
-			return progressMsg(fmt.Sprintf("[%s] - Completed", step.displayName))
+			return progressMsg{step.id, result}
 		})
 	}
 
-	cmds = append(cmds, func() tea.Msg {
-		return progressMsg("Setup complete!")
-	})
+	//cmds = append(cmds, func() tea.Msg {
+	//	return progressMsg("Setup complete!")
+	//})
 
 	return tea.Sequence(cmds...)
 }
