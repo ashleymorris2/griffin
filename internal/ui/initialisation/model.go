@@ -3,7 +3,7 @@ package initialisation
 import "github.com/charmbracelet/bubbles/spinner"
 
 type initModel struct {
-	statuses map[string]string
+	statuses map[string]stepProgress
 	spinner  spinner.Model
 	finished bool
 }
@@ -14,6 +14,6 @@ func newInitModel() initModel {
 
 	return initModel{
 		spinner:  s,
-		statuses: make(map[string]string),
+		statuses: make(map[string]stepProgress),
 	}
 }

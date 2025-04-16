@@ -2,6 +2,20 @@ package initialisation
 
 import "github.com/ashleymorris2/booty/internal/fs"
 
+type stepStatusType int
+
+const (
+	statusPending stepStatusType = iota
+	statusInProgress
+	statusSuccess
+	statusFailed
+)
+
+type stepProgress struct {
+	Status  stepStatusType
+	Message string
+}
+
 func PrepareSetupFolder(path string) (string, error) {
 	status, err := fs.EnsurePathExistsInHome(path)
 	switch status {

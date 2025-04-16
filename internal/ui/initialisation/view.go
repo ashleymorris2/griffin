@@ -1,15 +1,18 @@
 package initialisation
 
 import (
+	"fmt"
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
 )
 
 type progressMsg struct {
-	stepId  string
-	message string
+	stepId string
+	status stepProgress
 }
+
+type initCompleteMsg string
 
 func (m initModel) Init() tea.Cmd {
 	return tea.Batch(
@@ -33,7 +36,11 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case progressMsg:
-		m.statuses[msg.stepId] = msg.message
+		m.statuses[msg.stepId] = msg.status
+		return m, nil
+
+	case initCompleteMsg:
+		m.finished = true
 		return m, nil
 
 	case spinner.TickMsg:
@@ -52,13 +59,30 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m initModel) View() string {
 	var b strings.Builder
 
-	//if m.finished {
-	//	b.WriteString("Setup complete!")
-	//	b.WriteString(strings.Join(m.statuses, "\n"))
-	//	b.WriteString("Nice")
-	//} else {
-	//	b.WriteString(fmt.Sprintf("%s Setting up...\n%s", m.spinner.View(), strings.Join(m.statuses, "\n")))
-	//}
+	if m.finished {
+		b.WriteString("Initialization complete!\n")
+	} else {
+		b.WriteString(fmt.Sprintf("Running initalization...\n"))
+	}
+
+	for _, stepID := range stepOrder {
+		if step, ok := m.statuses[stepID]; ok {
+			var symbol string
+			switch step.Status {
+			case statusSuccess:
+				symbol = "[✓]"
+			case statusFailed:
+				symbol = "[X]"
+			case statusInProgress:
+				symbol = fmt.Sprintf("[%s]", m.spinner.View())
+			default:
+				symbol = "[ ]"
+			}
+			b.WriteString(fmt.Sprintf("%s %s\n", symbol, step.Message))
+		} else {
+			b.WriteString(fmt.Sprintf("%s...\n", stepLabels[stepID]))
+		}
+	}
 
 	result := b.String()
 	return result
