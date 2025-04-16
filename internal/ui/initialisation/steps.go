@@ -10,10 +10,3 @@ const (
 var stepOrder = []string{
 	stepPrepareEnv,
 }
-
-// stepLabels maps internal step IDs to human-friendly display names.
-// These are shown in the terminal UI, and are separate from the internal identifiers to keep things flexible.
-// You can safely change these without affecting program logic.
-var stepLabels = map[string]string{
-	stepPrepareEnv: "Preparing environment",
-}

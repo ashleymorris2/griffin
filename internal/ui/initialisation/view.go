@@ -12,8 +12,6 @@ type progressMsg struct {
 	status stepProgress
 }
 
-type initCompleteMsg string
-
 func (m initModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
@@ -37,10 +35,16 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case progressMsg:
 		m.statuses[msg.stepId] = msg.status
-		return m, nil
 
-	case initCompleteMsg:
-		m.finished = true
+		// Check if the step has completed
+		if msg.status.Status == statusSuccess || msg.status.Status == statusFailed {
+			m.completedSteps++
+
+			// All steps done?
+			if m.completedSteps == m.totalSteps {
+				m.finished = true
+			}
+		}
 		return m, nil
 
 	case spinner.TickMsg:
@@ -79,8 +83,6 @@ func (m initModel) View() string {
 				symbol = "[ ]"
 			}
 			b.WriteString(fmt.Sprintf("%s %s\n", symbol, step.Message))
-		} else {
-			b.WriteString(fmt.Sprintf("%s...\n", stepLabels[stepID]))
 		}
 	}
 
