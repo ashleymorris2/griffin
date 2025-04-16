@@ -45,7 +45,7 @@ func makeStepCmd(step initStep) tea.Cmd {
 			}
 		},
 		func() tea.Msg {
-			time.Sleep(1 * time.Second) // Simulate a delay - just because
+			time.Sleep(8 * time.Second) // Simulate a delay - just because
 			result, err := step.run()
 			if err != nil {
 				return progressMsg{

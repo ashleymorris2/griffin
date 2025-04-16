@@ -29,4 +29,4 @@ coverage.out
 *.log
 
 # Local Testing
-test.yml
+internal/files/test.yml

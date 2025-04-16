@@ -13,6 +13,7 @@ type progressMsg struct {
 }
 
 func (m initModel) Init() tea.Cmd {
+
 	return tea.Batch(
 		m.spinner.Tick,
 		buildSetupCommands([]initStep{
@@ -20,8 +21,16 @@ func (m initModel) Init() tea.Cmd {
 				id:      stepPrepareEnv,
 				message: "Preparing local environment...",
 				run: func() (string, error) {
-					resultMsg, err := PrepareSetupFolder(".devsetup")
+					resultMsg, err := prepareLocalEnvironment()
 					return resultMsg, err
+				},
+			},
+			{
+				id:      stepCreateExample,
+				message: "Creating example config file...",
+				run: func() (string, error) {
+					err := createExampleConfig()
+					return "Good", err
 				},
 			},
 		}),

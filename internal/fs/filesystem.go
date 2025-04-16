@@ -6,12 +6,6 @@ import (
 	"path/filepath"
 )
 
-const (
-	failMsg    = "Environment setup failed."
-	createdMsg = "Environment ready."
-	skipMsg    = "Environment already exists. Skipping step."
-)
-
 type PathStatus int
 
 const (
@@ -20,23 +14,59 @@ const (
 	StatusFailed
 )
 
-// EnsurePathExistsInHome Returns true if a directory exists with the given name in $HOME on Linux and macOS or
-// %USERPROFILE% on Windows, and attempts to create it if it doesn't.
-func EnsurePathExistsInHome(path string) (PathStatus, error) {
+type PathCheckResult struct {
+	Status PathStatus
+	Path   string
+}
+
+// EnsureSubdirInHome checks for the existence of a subdirectory within the user's home directory.
+// If the directory does not exist, it attempts to create it with permission 0700.
+//
+// The function returns a PathCheckResult containing the status (e.g. created, already exists, or failed)
+// and the full absolute path to the directory. If any error occurs (e.g. home directory not found,
+// permission denied), the returned error will contain additional context.
+//
+// This is useful for safely creating app-specific folders in a cross-platform way under $HOME (Linux/macOS)
+// or %USERPROFILE% (Windows).
+func EnsureSubdirInHome(subdir string) (PathCheckResult, error) {
 	home, err := os.UserHomeDir()
+
 	if err != nil {
-		return StatusFailed, fmt.Errorf("unable to find home directory: %w", err)
+		return PathCheckResult{Status: StatusFailed, Path: home}, fmt.Errorf("unable to find home directory: %w", err)
 	}
 
-	fullPath := filepath.Join(home, path)
+	fullPath := filepath.Join(home, subdir)
+
 	if _, err := os.Stat(fullPath); os.IsNotExist(err) {
 		if err := os.Mkdir(fullPath, 0700); err != nil {
-			return StatusFailed, fmt.Errorf("failed to create directory: %w", err)
+			return PathCheckResult{Status: StatusFailed, Path: ""}, fmt.Errorf("failed to create directory: %w", err)
 		}
-		return StatusCreated, nil
+		return PathCheckResult{Status: StatusCreated, Path: fullPath}, nil
 	} else if err == nil {
-		return StatusAlreadyExists, nil
+		return PathCheckResult{Status: StatusAlreadyExists, Path: fullPath}, nil
 	} else {
-		return StatusFailed, fmt.Errorf("error checking directory: %w", err)
+		return PathCheckResult{Status: StatusFailed, Path: ""}, fmt.Errorf("error checking directory: %w", err)
 	}
+}
+
+// WriteFileToHomeSubdir writes the given file contents to a file with the specified name
+// inside a subdirectory of the user's home directory. If the subdirectory does not exist,
+// it will be created automatically.
+//
+// For example, calling WriteFileToHomeSubdir("myapp", "config.yaml", data) will create or
+// ensure the directory $HOME/myapp exists and write the contents of data to $HOME/myapp/config.yaml.
+//
+// Returns an error if the subdirectory cannot be created or if the file write fails.
+func WriteFileToHomeSubdir(subDir string, filename string, file []byte) error {
+	result, err := EnsureSubdirInHome(subDir)
+	if err != nil {
+		return fmt.Errorf("failed to find or create destination directory to write to: %w", err)
+	}
+
+	destPath := filepath.Join(result.Path, filename)
+	err = os.WriteFile(destPath, file, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to write example config: %w", err)
+	}
+	return nil
 }
