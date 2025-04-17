@@ -62,13 +62,15 @@ func (m SequentialTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m SequentialTaskModel) View() string {
+
 	var b strings.Builder
 
+	title := m.initialTitle
 	if m.finished {
-		b.WriteString("Initialization complete\n\n")
-	} else {
-		b.WriteString(fmt.Sprintf("Running initalization...\n\n"))
+		title = m.finalTitle
 	}
+
+	b.WriteString(fmt.Sprintf("%s\n\n", title))
 
 	for _, task := range m.tasks {
 		if step, ok := m.statuses[task.ID]; ok {

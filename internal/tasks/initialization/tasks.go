@@ -10,7 +10,6 @@ import (
 )
 
 const setupFolderPath = ".devsetup"
-
 const (
 	stepPrepareEnv    = "prepare-env"           // Set up the environment (e.g., ensure required dirs exist)
 	stepCreateExample = "create-example-config" // Create an example config file (disable with --example=false
@@ -47,7 +46,7 @@ func prepareLocalEnvironment() (string, error) {
 	case fs.StatusCreated:
 		return "Environment ready.", nil
 	case fs.StatusAlreadyExists:
-		return "Environment already exists. (skipping)", nil
+		return "Environment already exists. (skipped)", nil
 	default:
 		return "", fmt.Errorf("unknown result during environment setup %w", err)
 	}

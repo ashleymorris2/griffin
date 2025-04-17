@@ -9,16 +9,18 @@ type SequentialTask struct {
 }
 
 type SequentialTaskModel struct {
-	tasks       []SequentialTask      // The tasks that are to be Run
-	taskChan    chan progressMsg      // Channel used to send progress updates between task runners and the model
-	statuses    map[string]taskStatus // Tracks the status (pending, success, failure) for each task by ID
-	taskCount   int                   // Total number of tasks to Run
-	currentTask int                   // Index of the current task being executed
-	spinner     spinner.Model         // Spinner UI element from the Bubble Tea bubbles package
-	finished    bool                  // Flag indicating whether all tasks have completed
+	tasks        []SequentialTask      // The tasks that are to be run
+	taskChan     chan progressMsg      // Channel used to send progress updates between task runners and the model
+	statuses     map[string]taskStatus // Tracks the status (pending, success, failure) for each task by ID
+	taskCount    int                   // Total number of tasks to Run
+	currentTask  int                   // Index of the current task being executed
+	spinner      spinner.Model         // Spinner UI element from the Bubble Tea bubbles package
+	finished     bool                  // Flag indicating whether all tasks have completed
+	initialTitle string                // Title to display when the program begins
+	finalTitle   string                // Title to display when the program ends
 }
 
-func NewTaskModel(tasks []SequentialTask) SequentialTaskModel {
+func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string) SequentialTaskModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Jump
@@ -32,12 +34,15 @@ func NewTaskModel(tasks []SequentialTask) SequentialTaskModel {
 	}
 
 	return SequentialTaskModel{
-		tasks:       tasks,
-		spinner:     s,
-		taskCount:   len(tasks),
-		statuses:    statuses,
-		taskChan:    make(chan progressMsg),
-		currentTask: 0,
+		tasks:        tasks,
+		taskChan:     make(chan progressMsg),
+		statuses:     statuses,
+		taskCount:    len(tasks),
+		currentTask:  0,
+		spinner:      s,
+		finished:     false,
+		initialTitle: initialTitle,
+		finalTitle:   finalTitle,
 	}
 }
 

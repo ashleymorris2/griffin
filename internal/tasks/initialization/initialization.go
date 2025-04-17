@@ -8,7 +8,14 @@ import (
 )
 
 func Run() error {
-	p := tea.NewProgram(seqtask.NewTaskModel(registerTasks()))
+	p := tea.NewProgram(
+		seqtask.NewTaskModel(
+			registerTasks(),
+			"Initialization running... hang tight 😎",
+			"Initialization complete 😌",
+		),
+	)
+
 	_, err := p.Run()
 	if err != nil {
 		fmt.Printf("There's been an error: %v", err)

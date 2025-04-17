@@ -5,11 +5,19 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the seqtask command
+// initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Initialises ",
-	Long:  ``,
+	Short: "Prepares required folder structure and config files",
+	Long: `Initializes your local development environment by creating a ".devsetup" folder
+in your $HOME directory with user-only permissions. 
+
+Configuration files are generated and managed exclusively in this location to avoid tampering or accidental exposure.
+
+Re-run this command anytime to recreate or verify your setup.
+
+Example:
+  booty init`,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		err := initialization.Run()
 		if err != nil {
@@ -22,14 +30,4 @@ var initCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// initCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// initCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
