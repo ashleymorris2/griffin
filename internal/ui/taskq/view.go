@@ -1,30 +1,26 @@
-package initialisation
+package taskq
 
 import (
 	"fmt"
+	"strings"
+
 	"github.com/charmbracelet/bubbles/spinner"
 	tea "github.com/charmbracelet/bubbletea"
-	"strings"
 )
 
-type progressMsg struct {
-	stepId string
-	status taskStatus
-}
-
-func (m initModel) Init() tea.Cmd {
+func (m SequentialTaskModel) Init() tea.Cmd {
 
 	// Start the first step
 	executeTaskAsync(m.tasks[m.currentTask], m.taskChan)
 
-	// Wait for the first progress message
+	// Wait for the first progress Message
 	return tea.Batch(
 		m.spinner.Tick,
-		waitForStepProgress(m.taskChan),
+		waitForTaskProgress(m.taskChan),
 	)
 }
 
-func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m SequentialTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
@@ -37,16 +33,16 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m, task, ok := m.nextTask()
 			if ok {
 				executeTaskAsync(task, m.taskChan)
-				return m, waitForStepProgress(m.taskChan)
+				return m, waitForTaskProgress(m.taskChan)
 			} else {
-				// No more steps to run
+				// No more steps to Run
 				m.finished = true
 				return m, nil
 			}
 		}
 
 		// If still in-progress, just continue ticking
-		return m, waitForStepProgress(m.taskChan)
+		return m, waitForTaskProgress(m.taskChan)
 
 	case spinner.TickMsg:
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -61,7 +57,7 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m initModel) View() string {
+func (m SequentialTaskModel) View() string {
 	var b strings.Builder
 
 	if m.finished {
@@ -70,8 +66,8 @@ func (m initModel) View() string {
 		b.WriteString(fmt.Sprintf("Running initalization...\n"))
 	}
 
-	for _, stepID := range taskOrder {
-		if step, ok := m.statuses[stepID]; ok {
+	for _, task := range m.tasks {
+		if step, ok := m.statuses[task.ID]; ok {
 			var symbol string
 			switch step.Status {
 			case statusSuccess:

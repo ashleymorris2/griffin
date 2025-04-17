@@ -42,20 +42,34 @@ func EnsureSubdirInHome(subdir string) (PathCheckResult, error) {
 
 	switch {
 	case os.IsNotExist(err):
-		// Try to create
+		// Try to create (read/write/execute - owner only)
 		if err := os.Mkdir(fullPath, 0700); err != nil {
-			return PathCheckResult{Status: StatusFailed, Path: ""}, fmt.Errorf("failed to create directory: %w", err)
+			return PathCheckResult{
+				Status: StatusFailed,
+				Path:   "",
+			}, fmt.Errorf("failed to create directory: %w", err)
 		}
-		return PathCheckResult{Status: StatusCreated, Path: fullPath}, nil
+		return PathCheckResult{
+			Status: StatusCreated,
+			Path:   fullPath,
+		}, nil
 	case err == nil && info.IsDir():
 		// Directory exists
-		return PathCheckResult{Status: StatusAlreadyExists, Path: fullPath}, nil
+		return PathCheckResult{
+			Status: StatusAlreadyExists,
+			Path:   fullPath,
+		}, nil
 	case err != nil:
-		return PathCheckResult{Status: StatusFailed, Path: ""}, fmt.Errorf("error checking directory: %w", err)
+		return PathCheckResult{
+			Status: StatusFailed,
+			Path:   "",
+		}, fmt.Errorf("error checking directory: %w", err)
 	default:
 		// Edge case: path exists but is not a directory
-		return PathCheckResult{Status: StatusFailed, Path: ""}, fmt.Errorf("path exists but is not a directory: %s", fullPath)
-
+		return PathCheckResult{
+			Status: StatusFailed,
+			Path:   "",
+		}, fmt.Errorf("path exists but is not a directory: %s", fullPath)
 	}
 }
 
@@ -74,7 +88,9 @@ func WriteFileToHomeSubdir(subDir string, filename string, file []byte) error {
 	}
 
 	destPath := filepath.Join(result.Path, filename)
-	err = os.WriteFile(destPath, file, 0644)
+
+	// (File permissions (read/write - owner, read - group)
+	err = os.WriteFile(destPath, file, 0640)
 	if err != nil {
 		return fmt.Errorf("failed to write example config: %w", err)
 	}
