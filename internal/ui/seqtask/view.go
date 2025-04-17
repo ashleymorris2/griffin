@@ -8,26 +8,29 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type initMsg struct{}
+type initCompleteMsg struct{}
 
-func (m SequentialTaskModel) Init() tea.Cmd {
+func (m SequentialTaskRunnerModel) Init() tea.Cmd {
 	return tea.Batch(
 		m.spinner.Tick,
-		func() tea.Msg { return initMsg{} },
+		func() tea.Msg { return initCompleteMsg{} },
 	)
 }
 
-func (m SequentialTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m SequentialTaskRunnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-	case initMsg:
+	case initCompleteMsg:
 		mm, nextTask, ok := m.getNextTask()
 		if ok {
 			executeTaskAsync(nextTask, mm.taskChan)
 			return mm, waitForTaskProgress(mm.taskChan)
 		}
-		return m, nil
+
+		// No tasks - set as finished
+		mm.finished = true
+		return mm, nil
 	case progressMsg:
 		m.statuses[msg.stepId] = msg.status
 
@@ -61,7 +64,7 @@ func (m SequentialTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m SequentialTaskModel) View() string {
+func (m SequentialTaskRunnerModel) View() string {
 
 	var b strings.Builder
 

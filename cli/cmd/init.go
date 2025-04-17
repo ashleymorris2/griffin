@@ -5,10 +5,16 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type InitOptions struct {
+	SkipExample bool
+}
+
+var initOpts InitOptions
+
 // initCmd represents the init command
 var initCmd = &cobra.Command{
 	Use:   "init",
-	Short: "Prepares required folder structure and config files",
+	Short: "Prepares the required folder structure and config files",
 	Long: `Initializes your local development environment by creating a ".devsetup" folder
 in your $HOME directory with user-only permissions. 
 
@@ -30,4 +36,5 @@ Example:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
+	initCmd.Flags().BoolVar(&initOpts.SkipExample, "no-example", false, "Skip generating the example config file")
 }

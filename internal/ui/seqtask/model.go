@@ -8,7 +8,7 @@ type SequentialTask struct {
 	Run     func() (string, error)
 }
 
-type SequentialTaskModel struct {
+type SequentialTaskRunnerModel struct {
 	tasks        []SequentialTask      // The tasks that are to be run
 	taskChan     chan progressMsg      // Channel used to send progress updates between task runners and the model
 	statuses     map[string]taskStatus // Tracks the status (pending, success, failure) for each task by ID
@@ -20,7 +20,7 @@ type SequentialTaskModel struct {
 	finalTitle   string                // Title to display when the program ends
 }
 
-func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string) SequentialTaskModel {
+func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string) SequentialTaskRunnerModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Jump
@@ -33,7 +33,7 @@ func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string
 		}
 	}
 
-	return SequentialTaskModel{
+	return SequentialTaskRunnerModel{
 		tasks:        tasks,
 		taskChan:     make(chan progressMsg),
 		statuses:     statuses,
@@ -54,7 +54,7 @@ func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string
 // changes are returned as a new version of the model.
 //
 // This approach helps avoid unintended side effects and keeps state transitions explicit.
-func (m SequentialTaskModel) getNextTask() (SequentialTaskModel, SequentialTask, bool) {
+func (m SequentialTaskRunnerModel) getNextTask() (SequentialTaskRunnerModel, SequentialTask, bool) {
 	if m.currentTask >= len(m.tasks) {
 		return m, SequentialTask{}, false
 	}
