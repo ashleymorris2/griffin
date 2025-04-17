@@ -10,10 +10,10 @@ import (
 	"time"
 )
 
-type stepStatusType int
+type taskStatusType int
 
 const (
-	statusPending stepStatusType = iota
+	statusPending taskStatusType = iota
 	statusInProgress
 	statusSuccess
 	statusFailed
@@ -21,27 +21,52 @@ const (
 
 const setupFolderPath = ".devsetup"
 
-type stepProgress struct {
-	Status  stepStatusType
+type taskStatus struct {
+	Status  taskStatusType
 	Message string
 }
 
-func runStep(step initStep, ch chan progressMsg) {
+// executeTaskAsync launches a background goroutine that runs a single init task.
+// It sends progressMsg updates (queued → in-progress → success/failure) to the provided channel.
+//
+// This design keeps the UI responsive by offloading long-running operations
+// to a separate goroutine and communicating results back via progressMsg values.
+func executeTaskAsync(task initTask, ch chan progressMsg) {
 	go func() {
-		ch <- progressMsg{step.id, stepProgress{Status: statusPending, Message: step.message + " (queued)"}}
+		// Send "pending" status immediately
+		ch <- progressMsg{
+			task.id,
+			taskStatus{Status: statusPending, Message: task.message + " (pending)"},
+		}
 		time.Sleep(time.Duration(rand.Int63n(250)+100) * time.Millisecond)
 
-		ch <- progressMsg{step.id, stepProgress{Status: statusInProgress, Message: step.message}}
+		// Send "in progress" status after a short delay
+		ch <- progressMsg{
+			task.id,
+			taskStatus{Status: statusInProgress, Message: task.message},
+		}
 		time.Sleep(time.Duration(rand.Int63n(500)+100) * time.Millisecond)
 
-		result, err := step.run()
+		// Execute the task
+		result, err := task.run()
 		if err != nil {
 			time.Sleep(time.Duration(rand.Int63n(200)+100) * time.Millisecond)
-			ch <- progressMsg{step.id, stepProgress{Status: statusFailed, Message: fmt.Sprintf("%s - %v", step.message, err)}}
+
+			// Report failure
+			ch <- progressMsg{
+				task.id,
+				taskStatus{Status: statusFailed, Message: fmt.Sprintf("%s - %v", task.message, err)},
+			}
+
 			return
 		}
 		time.Sleep(time.Duration(rand.Int63n(200)+100) * time.Millisecond)
-		ch <- progressMsg{step.id, stepProgress{Status: statusSuccess, Message: result}}
+
+		// Report success
+		ch <- progressMsg{
+			task.id,
+			taskStatus{Status: statusSuccess, Message: result},
+		}
 	}()
 }
 

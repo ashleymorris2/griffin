@@ -6,15 +6,21 @@ const (
 	stepCreateExample = "create-example-config" //Create an example config file (disable with --example=false
 )
 
-// stepOrder defines the order in which setup steps should be executed and displayed in the UI.
+// taskOrder defines the order in which setup steps should be executed and displayed in the UI.
 // The order here controls both the execution sequence and how steps appear in the terminal output.
-var stepOrder = []string{
+var taskOrder = []string{
 	stepPrepareEnv,
 	stepCreateExample,
 }
 
-func buildSteps() []initStep {
-	return []initStep{
+type initTask struct {
+	id      string
+	message string
+	run     func() (string, error)
+}
+
+func buildSteps() []initTask {
+	return []initTask{
 		{
 			id:      stepPrepareEnv,
 			message: "Preparing local environment...",

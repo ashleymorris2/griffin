@@ -9,25 +9,18 @@ import (
 
 type progressMsg struct {
 	stepId string
-	status stepProgress
+	status taskStatus
 }
 
 func (m initModel) Init() tea.Cmd {
 
-	for _, step := range buildSteps() {
-		m.statuses[step.id] = stepProgress{
-			Status:  statusPending,
-			Message: step.message + " (queued)",
-		}
-	}
-
 	// Start the first step
-	runStep(buildSteps()[m.currentStep], m.stepChan)
+	executeTaskAsync(m.tasks[m.currentTask], m.taskChan)
 
 	// Wait for the first progress message
 	return tea.Batch(
 		m.spinner.Tick,
-		waitForStepProgress(m.stepChan),
+		waitForStepProgress(m.taskChan),
 	)
 }
 
@@ -41,14 +34,19 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Check if the step has completed
 		if msg.status.Status == statusSuccess || msg.status.Status == statusFailed {
-			m.currentStep++
-			if m.currentStep < m.totalSteps {
-				runStep(buildSteps()[m.currentStep], m.stepChan)
+			m, task, ok := m.nextTask()
+			if ok {
+				executeTaskAsync(task, m.taskChan)
+				return m, waitForStepProgress(m.taskChan)
 			} else {
-				return m, tea.Quit
+				// No more steps to run
+				m.finished = true
+				return m, nil
 			}
 		}
-		return m, waitForStepProgress(m.stepChan)
+
+		// If still in-progress, just continue ticking
+		return m, waitForStepProgress(m.taskChan)
 
 	case spinner.TickMsg:
 		m.spinner, cmd = m.spinner.Update(msg)
@@ -72,7 +70,7 @@ func (m initModel) View() string {
 		b.WriteString(fmt.Sprintf("Running initalization...\n"))
 	}
 
-	for _, stepID := range stepOrder {
+	for _, stepID := range taskOrder {
 		if step, ok := m.statuses[stepID]; ok {
 			var symbol string
 			switch step.Status {
