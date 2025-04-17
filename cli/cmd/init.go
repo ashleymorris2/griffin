@@ -5,7 +5,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// initCmd represents the taskq command
+// initCmd represents the seqtask command
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialises ",

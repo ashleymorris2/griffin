@@ -1,4 +1,4 @@
-package taskq
+package seqtask
 
 import "github.com/charmbracelet/bubbles/spinner"
 
@@ -18,7 +18,7 @@ type SequentialTaskModel struct {
 	finished    bool                  // Flag indicating whether all tasks have completed
 }
 
-func NewSequentialTaskModel(tasks []SequentialTask) SequentialTaskModel {
+func NewTaskModel(tasks []SequentialTask) SequentialTaskModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Jump
@@ -27,7 +27,7 @@ func NewSequentialTaskModel(tasks []SequentialTask) SequentialTaskModel {
 	for _, step := range tasks {
 		statuses[step.ID] = taskStatus{
 			Status:  statusPending,
-			Message: step.Message + " (queued)",
+			Message: step.Message + "(queued)",
 		}
 	}
 
@@ -41,7 +41,7 @@ func NewSequentialTaskModel(tasks []SequentialTask) SequentialTaskModel {
 	}
 }
 
-// nextTask returns the next initialization task to Run, the updated model, and a boolean
+// getNextTask returns the next initialization task to Run, the updated model, and a boolean
 // indicating whether a task was available.
 //
 // The model is passed and returned by value, which is intentional. In Bubble Tea,
@@ -49,7 +49,7 @@ func NewSequentialTaskModel(tasks []SequentialTask) SequentialTaskModel {
 // changes are returned as a new version of the model.
 //
 // This approach helps avoid unintended side effects and keeps state transitions explicit.
-func (m SequentialTaskModel) nextTask() (SequentialTaskModel, SequentialTask, bool) {
+func (m SequentialTaskModel) getNextTask() (SequentialTaskModel, SequentialTask, bool) {
 	if m.currentTask >= len(m.tasks) {
 		return m, SequentialTask{}, false
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
-	"github.com/ashleymorris2/booty/internal/ui/taskq"
+	"github.com/ashleymorris2/booty/internal/ui/seqtask"
 )
 
 const setupFolderPath = ".devsetup"
@@ -16,8 +16,8 @@ const (
 	stepCreateExample = "create-example-config" // Create an example config file (disable with --example=false
 )
 
-func registerTasks() []taskq.SequentialTask {
-	return []taskq.SequentialTask{
+func registerTasks() []seqtask.SequentialTask {
+	return []seqtask.SequentialTask{
 		{
 			ID:      stepPrepareEnv,
 			Message: "Preparing local environment...",
@@ -47,17 +47,17 @@ func prepareLocalEnvironment() (string, error) {
 	case fs.StatusCreated:
 		return "Environment ready.", nil
 	case fs.StatusAlreadyExists:
-		return "Environment already exists. Skipping step.", nil
+		return "Environment already exists. (skipping)", nil
 	default:
 		return "", fmt.Errorf("unknown result during environment setup %w", err)
 	}
 }
 
 func createExampleConfig() (string, error) {
-	err := fs.WriteFileToHomeSubdir(filepath.Join(setupFolderPath, "config"), "example.yml", files.ExampleConfig)
+	result, err := fs.WriteFileToHomeSubdir(filepath.Join(setupFolderPath, "config"), "example.yml", files.ExampleConfig)
 	if err != nil {
 		return "", fmt.Errorf("could not write config file: %w", err)
 	}
 
-	return "Example config file ", nil
+	return result, nil
 }

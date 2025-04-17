@@ -1,4 +1,4 @@
-package taskq
+package seqtask
 
 import (
 	"fmt"
@@ -8,15 +8,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type initMsg struct{}
+
 func (m SequentialTaskModel) Init() tea.Cmd {
-
-	// Start the first step
-	executeTaskAsync(m.tasks[m.currentTask], m.taskChan)
-
-	// Wait for the first progress Message
 	return tea.Batch(
 		m.spinner.Tick,
-		waitForTaskProgress(m.taskChan),
+		func() tea.Msg { return initMsg{} },
 	)
 }
 
@@ -24,20 +21,27 @@ func (m SequentialTaskModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
 	switch msg := msg.(type) {
-
+	case initMsg:
+		mm, nextTask, ok := m.getNextTask()
+		if ok {
+			executeTaskAsync(nextTask, mm.taskChan)
+			return mm, waitForTaskProgress(mm.taskChan)
+		}
+		return m, nil
 	case progressMsg:
 		m.statuses[msg.stepId] = msg.status
 
 		// Check if the step has completed
 		if msg.status.Status == statusSuccess || msg.status.Status == statusFailed {
-			m, task, ok := m.nextTask()
+			mm, nextTask, ok := m.getNextTask()
 			if ok {
-				executeTaskAsync(task, m.taskChan)
-				return m, waitForTaskProgress(m.taskChan)
+				// Execute the next getNextTask and wait for progress
+				executeTaskAsync(nextTask, mm.taskChan)
+				return mm, waitForTaskProgress(mm.taskChan)
 			} else {
 				// No more steps to Run
-				m.finished = true
-				return m, nil
+				mm.finished = true
+				return mm, nil
 			}
 		}
 
@@ -61,9 +65,9 @@ func (m SequentialTaskModel) View() string {
 	var b strings.Builder
 
 	if m.finished {
-		b.WriteString("Initialization complete!\n")
+		b.WriteString("Initialization complete\n\n")
 	} else {
-		b.WriteString(fmt.Sprintf("Running initalization...\n"))
+		b.WriteString(fmt.Sprintf("Running initalization...\n\n"))
 	}
 
 	for _, task := range m.tasks {

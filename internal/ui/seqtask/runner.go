@@ -1,4 +1,4 @@
-package taskq
+package seqtask
 
 import (
 	"fmt"
@@ -40,19 +40,19 @@ func executeTaskAsync(task SequentialTask, ch chan progressMsg) {
 			task.ID,
 			taskStatus{Status: statusPending, Message: task.Message + " (pending)"},
 		}
-		time.Sleep(time.Duration(rand.Int63n(250)+100) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int63n(2500)+100) * time.Millisecond)
 
 		// Send "in progress" status after a short delay
 		ch <- progressMsg{
 			task.ID,
 			taskStatus{Status: statusInProgress, Message: task.Message},
 		}
-		time.Sleep(time.Duration(rand.Int63n(500)+100) * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int63n(5000)+100) * time.Millisecond)
 
 		// Execute the task
 		result, err := task.Run()
 		if err != nil {
-			time.Sleep(time.Duration(rand.Int63n(200)+100) * time.Millisecond)
+			time.Sleep(time.Duration(rand.Int63n(2000)+100) * time.Millisecond)
 
 			// Report failure
 			ch <- progressMsg{

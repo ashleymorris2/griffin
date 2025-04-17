@@ -81,19 +81,27 @@ func EnsureSubdirInHome(subdir string) (PathCheckResult, error) {
 // ensure the directory $HOME/myapp exists and write the contents of data to $HOME/myapp/config.yaml.
 //
 // Returns an error if the subdirectory cannot be created or if the file write fails.
-func WriteFileToHomeSubdir(subDir string, filename string, file []byte) error {
+func WriteFileToHomeSubdir(subDir string, filename string, file []byte) (string, error) {
 	result, err := EnsureSubdirInHome(subDir)
 	if err != nil {
-		return fmt.Errorf("failed to find or create destination directory to write to: %w", err)
+		return "", fmt.Errorf("failed to find or create destination directory: %w", err)
 	}
 
 	destPath := filepath.Join(result.Path, filename)
 
-	// (File permissions (read/write - owner, read - group)
-	err = os.WriteFile(destPath, file, 0640)
-	if err != nil {
-		return fmt.Errorf("failed to write example config: %w", err)
+	// Check if file already exists
+	if _, err := os.Stat(destPath); err == nil {
+		return "File already exists. (skipping)", nil
+	} else if !os.IsNotExist(err) {
+		return "", fmt.Errorf("error checking file: %w", err)
 	}
 
-	return nil
+	// (File permissions (read/write - owner, read - group)
+	err = os.WriteFile(destPath, file, 0640)
+	err = os.WriteFile(destPath, file, 0640)
+	if err != nil {
+		return "", fmt.Errorf("failed to write file: %w", err)
+	}
+
+	return "File created successfully.", nil
 }
