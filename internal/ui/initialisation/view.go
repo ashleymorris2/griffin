@@ -14,26 +14,20 @@ type progressMsg struct {
 
 func (m initModel) Init() tea.Cmd {
 
+	for _, step := range buildSteps() {
+		m.statuses[step.id] = stepProgress{
+			Status:  statusPending,
+			Message: step.message + " (queued)",
+		}
+	}
+
+	// Start the first step
+	runStep(buildSteps()[m.currentStep], m.stepChan)
+
+	// Wait for the first progress message
 	return tea.Batch(
 		m.spinner.Tick,
-		buildSetupCommands([]initStep{
-			{
-				id:      stepPrepareEnv,
-				message: "Preparing local environment...",
-				run: func() (string, error) {
-					resultMsg, err := prepareLocalEnvironment()
-					return resultMsg, err
-				},
-			},
-			{
-				id:      stepCreateExample,
-				message: "Creating example config file...",
-				run: func() (string, error) {
-					err := createExampleConfig()
-					return "Good", err
-				},
-			},
-		}),
+		waitForStepProgress(m.stepChan),
 	)
 }
 
@@ -47,14 +41,14 @@ func (m initModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Check if the step has completed
 		if msg.status.Status == statusSuccess || msg.status.Status == statusFailed {
-			m.completedSteps++
-
-			// All steps done?
-			if m.completedSteps == m.totalSteps {
-				m.finished = true
+			m.currentStep++
+			if m.currentStep < m.totalSteps {
+				runStep(buildSteps()[m.currentStep], m.stepChan)
+			} else {
+				return m, tea.Quit
 			}
 		}
-		return m, nil
+		return m, waitForStepProgress(m.stepChan)
 
 	case spinner.TickMsg:
 		m.spinner, cmd = m.spinner.Update(msg)

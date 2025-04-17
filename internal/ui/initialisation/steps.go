@@ -12,3 +12,24 @@ var stepOrder = []string{
 	stepPrepareEnv,
 	stepCreateExample,
 }
+
+func buildSteps() []initStep {
+	return []initStep{
+		{
+			id:      stepPrepareEnv,
+			message: "Preparing local environment...",
+			run: func() (string, error) {
+				resultMsg, err := prepareLocalEnvironment()
+				return resultMsg, err
+			},
+		},
+		{
+			id:      stepCreateExample,
+			message: "Creating example config file...",
+			run: func() (string, error) {
+				err := createExampleConfig()
+				return "Good", err
+			},
+		},
+	}
+}
