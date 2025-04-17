@@ -5,6 +5,7 @@ import (
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
 	tea "github.com/charmbracelet/bubbletea"
+	"math/rand"
 	"path/filepath"
 	"time"
 )
@@ -28,18 +29,18 @@ type stepProgress struct {
 func runStep(step initStep, ch chan progressMsg) {
 	go func() {
 		ch <- progressMsg{step.id, stepProgress{Status: statusPending, Message: step.message + " (queued)"}}
-		time.Sleep(400 * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int63n(250)+100) * time.Millisecond)
 
 		ch <- progressMsg{step.id, stepProgress{Status: statusInProgress, Message: step.message}}
-		time.Sleep(600 * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int63n(500)+100) * time.Millisecond)
 
 		result, err := step.run()
 		if err != nil {
-			time.Sleep(300 * time.Millisecond)
+			time.Sleep(time.Duration(rand.Int63n(200)+100) * time.Millisecond)
 			ch <- progressMsg{step.id, stepProgress{Status: statusFailed, Message: fmt.Sprintf("%s - %v", step.message, err)}}
 			return
 		}
-		time.Sleep(300 * time.Millisecond)
+		time.Sleep(time.Duration(rand.Int63n(200)+100) * time.Millisecond)
 		ch <- progressMsg{step.id, stepProgress{Status: statusSuccess, Message: result}}
 	}()
 }
