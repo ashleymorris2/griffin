@@ -5,6 +5,7 @@ import (
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
 	tea "github.com/charmbracelet/bubbletea"
+	"path/filepath"
 	"time"
 )
 
@@ -66,7 +67,7 @@ func prepareLocalEnvironment() (string, error) {
 }
 
 func createExampleConfig() error {
-	err := fs.WriteFileToHomeSubdir("config", "example.yml", files.ExampleConfig)
+	err := fs.WriteFileToHomeSubdir(filepath.Join(setupFolderPath, "config"), "example.yml", files.ExampleConfig)
 	if err != nil {
 		return fmt.Errorf("could not write config file: %w", err)
 	}
