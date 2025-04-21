@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ashleymorris2/booty/internal/tasks/initialization"
+	"github.com/ashleymorris2/booty/internal/core/initialization"
 	"github.com/spf13/cobra"
 )
 

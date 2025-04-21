@@ -15,7 +15,7 @@ const (
 	stepCreateExample = "create-example-config" // Create an example config file (disable with --example=false
 )
 
-func registerTasks() []seqtask.SequentialTask {
+func tasks() []seqtask.SequentialTask {
 	return []seqtask.SequentialTask{
 		{
 			ID:      stepPrepareEnv,
@@ -37,7 +37,7 @@ func registerTasks() []seqtask.SequentialTask {
 }
 
 func prepareLocalEnvironment() (string, error) {
-	result, err := fs.EnsureSubdirInHome(setupFolderPath)
+	result, err := fs.EnsureSubdirectoryExists(setupFolderPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to prepare environment: %w", err)
 	}
@@ -53,7 +53,7 @@ func prepareLocalEnvironment() (string, error) {
 }
 
 func createExampleConfig() (string, error) {
-	result, err := fs.WriteFileToHomeSubdir(filepath.Join(setupFolderPath, "config"), "example.yml", files.ExampleConfig)
+	result, err := fs.WriteToSubdirectory(filepath.Join(setupFolderPath, "config"), "example.yml", files.ExampleConfig)
 	if err != nil {
 		return "", fmt.Errorf("could not write config file: %w", err)
 	}

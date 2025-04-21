@@ -9,8 +9,8 @@ import (
 
 func Run() error {
 	p := tea.NewProgram(
-		seqtask.NewTaskModel(
-			registerTasks(),
+		seqtask.New(
+			tasks(),
 			"Initialization running... hang tight 😎",
 			"Initialization complete 😌",
 		),

@@ -20,7 +20,7 @@ type SequentialTaskRunnerModel struct {
 	finalTitle   string                // Title to display when the program ends
 }
 
-func NewTaskModel(tasks []SequentialTask, initialTitle string, finalTitle string) SequentialTaskRunnerModel {
+func New(tasks []SequentialTask, initialTitle string, finalTitle string) SequentialTaskRunnerModel {
 
 	s := spinner.New()
 	s.Spinner = spinner.Jump

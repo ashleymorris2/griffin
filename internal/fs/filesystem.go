@@ -19,7 +19,7 @@ type PathCheckResult struct {
 	Path   string
 }
 
-// EnsureSubdirInHome checks for the existence of a subdirectory within the user's home directory.
+// EnsureSubdirectoryExists checks for the existence of a subdirectory within the user's home directory.
 // If the directory does not exist, it attempts to create it with permission 0700.
 //
 // The function returns a PathCheckResult containing the status (e.g. created, already exists, or failed)
@@ -28,7 +28,7 @@ type PathCheckResult struct {
 //
 // This is useful for safely creating app-specific folders in a cross-platform way under $HOME (Linux/macOS)
 // or %USERPROFILE% (Windows).
-func EnsureSubdirInHome(subdir string) (PathCheckResult, error) {
+func EnsureSubdirectoryExists(subdir string) (PathCheckResult, error) {
 	home, err := os.UserHomeDir()
 
 	if err != nil {
@@ -73,16 +73,16 @@ func EnsureSubdirInHome(subdir string) (PathCheckResult, error) {
 	}
 }
 
-// WriteFileToHomeSubdir writes the given file contents to a file with the specified name
+// WriteToSubdirectory writes the given file contents to a file with the specified name
 // inside a subdirectory of the user's home directory. If the subdirectory does not exist,
 // it will be created automatically.
 //
-// For example, calling WriteFileToHomeSubdir("myapp", "config.yaml", data) will create or
+// For example, calling WriteToSubdirectory("myapp", "config.yaml", data) will create or
 // ensure the directory $HOME/myapp exists and write the contents of data to $HOME/myapp/config.yaml.
 //
 // Returns an error if the subdirectory cannot be created or if the file write fails.
-func WriteFileToHomeSubdir(subDir string, filename string, file []byte) (string, error) {
-	result, err := EnsureSubdirInHome(subDir)
+func WriteToSubdirectory(subDir string, filename string, file []byte) (string, error) {
+	result, err := EnsureSubdirectoryExists(subDir)
 	if err != nil {
 		return "", fmt.Errorf("failed to find or create destination directory: %w", err)
 	}
@@ -98,10 +98,24 @@ func WriteFileToHomeSubdir(subDir string, filename string, file []byte) (string,
 
 	// (File permissions (read/write - owner, read - group)
 	err = os.WriteFile(destPath, file, 0640)
-	err = os.WriteFile(destPath, file, 0640)
 	if err != nil {
 		return "", fmt.Errorf("failed to write file: %w", err)
 	}
 
 	return "File created successfully.", nil
+}
+
+func ListFilesInSubDirectory(subDir string) ([]string, error) {
+	home, _ := os.UserHomeDir()
+	configDir := filepath.Join(home, ".devsetup", "config")
+
+	files, err := filepath.Glob(filepath.Join(configDir, "*.yml"))
+	if err != nil {
+		return nil, fmt.Errorf("error listing files: %w", err)
+	}
+	if len(files) == 0 {
+		return nil, fmt.Errorf("no files found")
+	}
+
+	return files, nil
 }
