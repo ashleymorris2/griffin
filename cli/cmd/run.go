@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/ashleymorris2/booty/internal/ui/listselect"
 	tea "github.com/charmbracelet/bubbletea"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 
@@ -29,6 +30,11 @@ func init() {
 	rootCmd.AddCommand(runCmd)
 }
 
+type SetupMetadata struct {
+	Title       string `yaml:"title"`
+	Description string `yaml:"description"`
+}
+
 func RunInteractiveSelector() {
 	home, _ := os.UserHomeDir()
 	configDir := filepath.Join(home, ".devsetup", "config")
@@ -42,14 +48,19 @@ func RunInteractiveSelector() {
 	// Convert filenames to SelectorItems
 	var items []listselect.SelectorItem
 	for _, file := range files {
+		meta, err := ReadMetadata(file)
+		if err != nil {
+			continue
+		}
+
 		items = append(items, listselect.SelectorItem{
-			TitleText:       filepath.Base(file),
-			DescriptionText: "",
+			TitleText:       meta.Title,
+			DescriptionText: meta.Description,
 			Value:           file,
 		})
 	}
 
-	model := listselect.NewListSelectorModel("Choose a setup config", items)
+	model := listselect.New("Choose a configuration to run", items)
 	program := tea.NewProgram(model)
 	result, err := program.Run()
 	if err != nil {
@@ -62,4 +73,16 @@ func RunInteractiveSelector() {
 		// Now run your actual setup logic here
 		// runSetupFromFile(msg.Value)
 	}
+}
+
+func ReadMetadata(path string) (SetupMetadata, error) {
+	var meta SetupMetadata
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return meta, err
+	}
+
+	err = yaml.Unmarshal(data, &meta)
+	return meta, err
 }

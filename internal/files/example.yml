@@ -1,6 +1,8 @@
+title: "Hello World"
+description: "Prints 'Hello, world!' to the terminal"
+
 steps:
-  - id: "hello_world"
-    label: "Print Hello World"
+  - label: "Print Hello World"
     uses: shell
     with:
       script: echo "Hello, world!"
