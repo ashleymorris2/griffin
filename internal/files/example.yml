@@ -1,0 +1,6 @@
+steps:
+  - id: "hello_world"
+    label: "Print Hello World"
+    uses: shell
+    with:
+      script: echo "Hello, world!"

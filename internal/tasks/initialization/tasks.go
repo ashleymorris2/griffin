@@ -46,7 +46,7 @@ func prepareLocalEnvironment() (string, error) {
 	case fs.StatusCreated:
 		return "Environment ready.", nil
 	case fs.StatusAlreadyExists:
-		return "Environment already exists. (skipped)", nil
+		return "Environment already prepared. (skipped)", nil
 	default:
 		return "", fmt.Errorf("unknown result during environment setup %w", err)
 	}

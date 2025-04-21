@@ -2,5 +2,5 @@ package files
 
 import _ "embed"
 
-//go:embed test.yml
+//go:embed example.yml
 var ExampleConfig []byte

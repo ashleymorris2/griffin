@@ -1,0 +1,49 @@
+metadata:
+  name: "Booty Onboarding"
+  version: "1.0"
+
+dependencies:
+  - name: "go-task"
+    check: "which task"
+    install:
+      uses: shell
+      with:
+        script: |
+          curl -s https://taskfile.dev/install.sh | sh
+
+pre:
+  - id: "detect_wsl"
+    label: "Check for WSL"
+    uses: shell
+    with:
+      script: "wsl.exe --status"
+
+steps:
+  - id: "create_devsetup"
+    label: "Create ~/.devsetup folder"
+    uses: fs.mkdir
+    with:
+      path: "~/.devsetup"
+
+  - id: "clone_repo"
+    label: "Clone example repo"
+    uses: git
+    with:
+      repo: "https://github.com/ashleymorris2/example"
+      dest: "~/projects/example"
+
+  - id: "install_node"
+    label: "Install Node with NVM"
+    uses: shell
+    with:
+      script: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+        source ~/.bashrc
+        nvm install --lts
+
+post:
+  - id: "show_success"
+    label: "Display success message"
+    uses: shell
+    with:
+      script: 'echo "🎉 Done! You\'re ready to code."'

@@ -2,6 +2,10 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/ashleymorris2/booty/internal/ui/listselect"
+	tea "github.com/charmbracelet/bubbletea"
+	"os"
+	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
@@ -17,10 +21,45 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("run called")
+		RunInteractiveSelector()
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(runCmd)
+}
+
+func RunInteractiveSelector() {
+	home, _ := os.UserHomeDir()
+	configDir := filepath.Join(home, ".devsetup", "config")
+
+	files, _ := filepath.Glob(filepath.Join(configDir, "*.yml"))
+	if len(files) == 0 {
+		fmt.Println("No setup files found.")
+		return
+	}
+
+	// Convert filenames to SelectorItems
+	var items []listselect.SelectorItem
+	for _, file := range files {
+		items = append(items, listselect.SelectorItem{
+			TitleText:       filepath.Base(file),
+			DescriptionText: "",
+			Value:           file,
+		})
+	}
+
+	model := listselect.NewListSelectorModel("Choose a setup config", items)
+	program := tea.NewProgram(model)
+	result, err := program.Run()
+	if err != nil {
+		fmt.Println("Error:", err)
+		return
+	}
+
+	if msg, ok := result.(listselect.ListSelectorModel); ok {
+		fmt.Println("Running:", msg)
+		// Now run your actual setup logic here
+		// runSetupFromFile(msg.Value)
+	}
 }

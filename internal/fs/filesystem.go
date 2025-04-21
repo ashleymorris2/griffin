@@ -91,7 +91,7 @@ func WriteFileToHomeSubdir(subDir string, filename string, file []byte) (string,
 
 	// Check if file already exists
 	if _, err := os.Stat(destPath); err == nil {
-		return "File already exists. (skipped)", nil
+		return fmt.Sprintf(`File "%s" already exists. (skipped)`, filename), nil
 	} else if !os.IsNotExist(err) {
 		return "", fmt.Errorf("error checking file: %w", err)
 	}
