@@ -11,7 +11,7 @@ import (
 type SelectorItem struct {
 	TitleText       string
 	DescriptionText string
-	Value           string // Can be used to store an ID, filename, etc.
+	Value           string
 }
 
 func (s SelectorItem) Title() string       { return s.TitleText }
@@ -27,10 +27,10 @@ type ListSelectorModel struct {
 
 var (
 	titleStyle        = lipgloss.NewStyle().MarginLeft(0)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("15"))
+	itemStyle         = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("10"))
 	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("170"))
 	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(40).PaddingBottom(1)
+	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(3).PaddingBottom(1)
 	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
 )
 
@@ -51,7 +51,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	desc := i.DescriptionText
 
 	if isSelected {
-		cursor = "> "
+		cursor = "→ "
 		title = selectedItemStyle.Render(title)
 		desc = selectedItemStyle.Render(desc)
 	} else {
@@ -62,6 +62,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	fmt.Fprintf(w, "%s%s\n", cursor, title)
 	fmt.Fprintf(w, "  %s\n", desc)
 }
+
 func New(title string, items []SelectorItem) ListSelectorModel {
 	listItems := make([]list.Item, len(items))
 	for i, item := range items {
@@ -70,6 +71,7 @@ func New(title string, items []SelectorItem) ListSelectorModel {
 
 	l := list.New(listItems, itemDelegate{}, 40, 10)
 	l.SetFilteringEnabled(true)
+	l.SetShowPagination(true)
 	l.Title = title
 	l.Styles.Title = titleStyle
 	l.Styles.PaginationStyle = paginationStyle
