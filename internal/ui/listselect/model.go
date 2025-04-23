@@ -20,7 +20,7 @@ func (s SelectorItem) FilterValue() string { return s.TitleText }
 
 type itemDelegate struct{}
 
-func (d itemDelegate) Height() int                             { return 1 }
+func (d itemDelegate) Height() int                             { return 2 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
@@ -30,6 +30,7 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	isSelected := index == m.Index()
+
 	cursor := " "
 	title := i.TitleText
 	desc := i.DescriptionText
@@ -37,10 +38,10 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	if isSelected {
 		cursor = styles.Cursor
 		title = styles.HighlightedListItem.Render(title)
-		desc = styles.HighlightedListDescription.Render(desc)
+		desc = styles.HighlightedListDesc.Render(desc)
 	} else {
 		title = styles.ListItem.Render(title)
-		desc = styles.ListDescription.Render(desc)
+		desc = styles.ListDesc.Render(desc)
 	}
 
 	fmt.Fprintf(w, "%s %s\n", cursor, title)
@@ -60,13 +61,20 @@ func New(title string, items []SelectorItem) ListSelectorModel {
 		listItems[i] = item
 	}
 
-	l := list.New(listItems, itemDelegate{}, 40, 10)
-	l.SetFilteringEnabled(true)
-	l.SetShowPagination(true)
+	l := list.New(listItems, itemDelegate{}, 40, 20)
+
 	l.Title = title
+
 	l.Styles.Title = styles.Title
+
+	l.FilterInput.PromptStyle = styles.FilterPrompt
+
+	l.Help.Styles.ShortKey = styles.Help
+	l.Help.Styles.ShortDesc = styles.HelpDesc
+	l.Help.Styles.FullKey = styles.Help
+	l.Help.Styles.FullDesc = styles.HelpDesc
+
 	l.Styles.PaginationStyle = styles.Pagination
-	l.Styles.HelpStyle = styles.HelpStyle
 
 	return ListSelectorModel{list: l}
 }
