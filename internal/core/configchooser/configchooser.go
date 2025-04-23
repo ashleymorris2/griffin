@@ -1,4 +1,4 @@
-package configselect
+package configchooser
 
 import (
 	"fmt"
@@ -37,8 +37,8 @@ func Run(files []string) error {
 		return fmt.Errorf("error: %s", err)
 	}
 
-	if msg, ok := result.(listselect.ListSelectorModel); ok {
-		fmt.Println("Running:", msg)
+	if m, ok := result.(listselect.ListSelectorModel); ok {
+		fmt.Println("Running:", m.Result)
 		// runSetupFromFile(msg.Value)
 	}
 

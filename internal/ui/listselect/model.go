@@ -2,9 +2,9 @@ package listselect
 
 import (
 	"fmt"
+	"github.com/ashleymorris2/booty/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"io"
 )
 
@@ -18,22 +18,6 @@ func (s SelectorItem) Title() string       { return s.TitleText }
 func (s SelectorItem) Description() string { return s.DescriptionText }
 func (s SelectorItem) FilterValue() string { return s.TitleText }
 
-type ListSelectorModel struct {
-	list     list.Model
-	quitting bool
-	done     bool
-	result   string
-}
-
-var (
-	titleStyle        = lipgloss.NewStyle().MarginLeft(0)
-	itemStyle         = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("10"))
-	selectedItemStyle = lipgloss.NewStyle().PaddingLeft(0).Foreground(lipgloss.Color("170"))
-	paginationStyle   = list.DefaultStyles().PaginationStyle.PaddingLeft(4)
-	helpStyle         = list.DefaultStyles().HelpStyle.PaddingLeft(3).PaddingBottom(1)
-	quitTextStyle     = lipgloss.NewStyle().Margin(1, 0, 2, 4)
-)
-
 type itemDelegate struct{}
 
 func (d itemDelegate) Height() int                             { return 1 }
@@ -46,21 +30,28 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	}
 
 	isSelected := index == m.Index()
-	cursor := "  "
+	cursor := " "
 	title := i.TitleText
 	desc := i.DescriptionText
 
 	if isSelected {
-		cursor = "→ "
-		title = selectedItemStyle.Render(title)
-		desc = selectedItemStyle.Render(desc)
+		cursor = styles.Cursor
+		title = styles.HighlightedListItem.Render(title)
+		desc = styles.HighlightedListDescription.Render(desc)
 	} else {
-		title = itemStyle.Render(title)
-		desc = itemStyle.Render(desc)
+		title = styles.ListItem.Render(title)
+		desc = styles.ListDescription.Render(desc)
 	}
 
-	fmt.Fprintf(w, "%s%s\n", cursor, title)
-	fmt.Fprintf(w, "  %s\n", desc)
+	fmt.Fprintf(w, "%s %s\n", cursor, title)
+	fmt.Fprintf(w, "%s %s\n", cursor, desc)
+}
+
+type ListSelectorModel struct {
+	list     list.Model
+	quitting bool
+	done     bool
+	Result   string
 }
 
 func New(title string, items []SelectorItem) ListSelectorModel {
@@ -73,9 +64,9 @@ func New(title string, items []SelectorItem) ListSelectorModel {
 	l.SetFilteringEnabled(true)
 	l.SetShowPagination(true)
 	l.Title = title
-	l.Styles.Title = titleStyle
-	l.Styles.PaginationStyle = paginationStyle
-	l.Styles.HelpStyle = helpStyle
+	l.Styles.Title = styles.Title
+	l.Styles.PaginationStyle = styles.Pagination
+	l.Styles.HelpStyle = styles.HelpStyle
 
 	return ListSelectorModel{list: l}
 }

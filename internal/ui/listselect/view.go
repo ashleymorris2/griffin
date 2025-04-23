@@ -18,9 +18,9 @@ func (m ListSelectorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "enter":
 			if item, ok := m.list.SelectedItem().(SelectorItem); ok {
-				return m, func() tea.Msg {
-					return ItemSelectedMsg{Value: item.Value}
-				}
+				m.done = true
+				m.Result = item.Value
+				return m, tea.Quit
 			}
 		case "q", "ctrl+c":
 			m.quitting = true

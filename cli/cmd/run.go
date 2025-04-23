@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ashleymorris2/booty/internal/core/configselect"
+	"github.com/ashleymorris2/booty/internal/core/configchooser"
 	"github.com/ashleymorris2/booty/internal/fs"
 	"github.com/spf13/cobra"
 )
@@ -27,7 +27,7 @@ func init() {
 
 func RunInteractiveSelector() {
 	files, err := fs.ListFilesInSubDirectory("config")
-	err = configselect.Run(files)
+	err = configchooser.Run(files)
 	if err != nil {
 		return
 	}
