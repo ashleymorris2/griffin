@@ -3,12 +3,13 @@ package blueprint
 import (
 	"gopkg.in/yaml.v3"
 	"os"
+	"sync"
 )
 
 type Metadata struct {
 	Title       string `yaml:"title"`
 	Description string `yaml:"description"`
-	Path        string `yaml:"-"`
+	FilePath    string `yaml:"-"`
 }
 
 func ReadMetadataFromFile(path string) (Metadata, error) {
@@ -23,22 +24,44 @@ func ReadMetadataFromFile(path string) (Metadata, error) {
 		return meta, err
 	}
 
-	meta.Path = path
+	meta.FilePath = path
 	return meta, nil
 }
 
-func ReadMetadataFromFiles(files []string) ([]Metadata, []error) {
-	var metadata []Metadata
-	var errs []error
+type ReadResult struct {
+	Index int
+	Item  Metadata
+	Err   error
+}
 
-	for _, file := range files {
-		meta, err := ReadMetadataFromFile(file)
-		if err != nil {
-			errs = append(errs, err)
-			continue
-		}
-		metadata = append(metadata, meta)
+func ReadMetadataFromFiles(files []string) chan ReadResult {
+	var wg sync.WaitGroup // Counts running goroutines
+
+	results := make(chan ReadResult, len(files)) // Buffered channel to hold the results
+	limit := make(chan struct{}, 8)              // Ensures that no more than n goroutines are ran concurrently
+
+	for i, file := range files {
+		wg.Add(1)
+		go func(i int, file string) {
+			defer wg.Done()
+			limit <- struct{}{}        // Acquire a slot, blocks if already at the set limit
+			defer func() { <-limit }() // Release slot once complete
+
+			data, err := ReadMetadataFromFile(file)
+			if err != nil {
+				results <- ReadResult{Index: i, Err: err}
+				return
+			}
+
+			results <- ReadResult{
+				Index: i,
+				Item:  data,
+			}
+		}(i, file)
 	}
 
-	return metadata, errs
+	wg.Wait() // Waits for all goroutines to complete
+	close(results)
+
+	return results
 }

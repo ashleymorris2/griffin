@@ -1,4 +1,4 @@
-package listselect
+package menu
 
 import "github.com/charmbracelet/bubbles/key"
 

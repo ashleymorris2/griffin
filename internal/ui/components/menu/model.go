@@ -1,4 +1,4 @@
-package listselect
+package menu
 
 import (
 	"fmt"
@@ -9,17 +9,21 @@ import (
 	"io"
 )
 
-type SelectorItem struct {
-	TitleText       string
-	DescriptionText string
-	Value           string
+type Item struct {
+	title       string
+	description string
+	Value       string
 }
 
-func (s SelectorItem) Title() string { return s.TitleText }
+func NewItem(title, description, value string) Item {
+	return Item{
+		title:       title,
+		description: description,
+		Value:       value,
+	}
+}
 
-func (s SelectorItem) Description() string { return s.DescriptionText }
-
-func (s SelectorItem) FilterValue() string { return s.TitleText }
+func (s Item) FilterValue() string { return s.title }
 
 type itemDelegate struct{}
 
@@ -27,7 +31,7 @@ func (d itemDelegate) Height() int                             { return 2 }
 func (d itemDelegate) Spacing() int                            { return 0 }
 func (d itemDelegate) Update(_ tea.Msg, _ *list.Model) tea.Cmd { return nil }
 func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list.Item) {
-	i, ok := listItem.(SelectorItem)
+	i, ok := listItem.(Item)
 	if !ok {
 		return
 	}
@@ -35,8 +39,8 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	isSelected := index == m.Index()
 
 	cursor := " "
-	title := i.TitleText
-	desc := i.DescriptionText
+	title := i.title
+	desc := i.description
 
 	if isSelected {
 		cursor = styles.List.Cursor
@@ -51,14 +55,14 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	_, _ = fmt.Fprintf(w, "%s %s\n", cursor, desc)
 }
 
-type ListSelectorModel struct {
+type Model struct {
 	list     list.Model
 	quitting bool
 	done     bool
 	Result   string
 }
 
-func New(title string, items []SelectorItem) ListSelectorModel {
+func New(title string, items []Item) Model {
 	listItems := make([]list.Item, len(items))
 	for i, item := range items {
 		listItems[i] = item
@@ -89,5 +93,5 @@ func New(title string, items []SelectorItem) ListSelectorModel {
 		}
 	}
 
-	return ListSelectorModel{list: l}
+	return Model{list: l}
 }
