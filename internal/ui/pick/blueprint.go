@@ -1,7 +1,6 @@
 package pick
 
 import (
-	"errors"
 	"github.com/ashleymorris2/booty/internal/core/blueprint"
 	"github.com/ashleymorris2/booty/internal/ui/components/menu"
 )
@@ -23,5 +22,5 @@ func BlueprintFrom(files []string) (string, error) {
 		return "", err
 	}
 
-	return m.Result, errors.New("no result")
+	return m.Result, nil
 }
