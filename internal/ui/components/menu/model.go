@@ -64,8 +64,8 @@ type Model struct {
 }
 
 func Show(items []Item) (Model, error) {
-	program := tea.NewProgram(New("Choose a configuration to run", items))
-	res, err := program.Run()
+	p := tea.NewProgram(New("Choose a configuration to run", items))
+	res, err := p.Run()
 	if err != nil {
 		return Model{}, fmt.Errorf("error: %s", err)
 	}

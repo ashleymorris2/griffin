@@ -25,6 +25,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.Result = item.Value
 				return m, tea.Quit
 			}
+
 		case msg.String() == "q" || msg.String() == "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
@@ -38,6 +39,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	if m.quitting {
 		return "Cancelled.\n"
+	}
+	if m.done {
+		return ""
 	}
 	return m.list.View()
 }

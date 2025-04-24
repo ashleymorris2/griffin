@@ -2,7 +2,7 @@ package setup
 
 import (
 	"fmt"
-	"github.com/ashleymorris2/booty/internal/ui/components/seqtask"
+	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
 	"path/filepath"
 
 	"github.com/ashleymorris2/booty/internal/files"
@@ -15,8 +15,8 @@ const (
 	stepCreateExample = "create-example-config" // Create an example config file (disable with --example=false
 )
 
-func tasks() []seqtask.SequentialTask {
-	return []seqtask.SequentialTask{
+func tasks() []taskrunner.SequentialTask {
+	return []taskrunner.SequentialTask{
 		{
 			ID:      stepPrepareEnv,
 			Message: "Preparing local environment...",

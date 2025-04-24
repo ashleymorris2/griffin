@@ -1,4 +1,4 @@
-package seqtask
+package taskrunner
 
 import "github.com/charmbracelet/bubbles/spinner"
 

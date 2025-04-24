@@ -2,14 +2,14 @@ package setup
 
 import (
 	"fmt"
-	"github.com/ashleymorris2/booty/internal/ui/components/seqtask"
+	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func Run() error {
 	p := tea.NewProgram(
-		seqtask.New(
+		taskrunner.New(
 			tasks(),
 			"Initialization running... hang tight 😎",
 			"Initialization complete 😌",

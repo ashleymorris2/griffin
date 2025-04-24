@@ -1,4 +1,4 @@
-package seqtask
+package taskrunner
 
 import (
 	"fmt"
@@ -24,7 +24,7 @@ type taskStatus struct {
 
 // progressMsg is sent to the update loop when a task has progressed in executeTask
 type progressMsg struct {
-	stepId string
+	taskId string
 	status taskStatus
 }
 

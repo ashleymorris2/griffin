@@ -1,4 +1,4 @@
-package seqtask
+package taskrunner
 
 import (
 	"fmt"
@@ -27,12 +27,12 @@ func (m SequentialTaskRunnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			executeTask(nextTask, mm.taskChan)
 			return mm, waitForTaskProgress(mm.taskChan)
 		}
-
 		// No tasks - set as finished
 		mm.finished = true
 		return mm, nil
+
 	case progressMsg:
-		m.statuses[msg.stepId] = msg.status
+		m.statuses[msg.taskId] = msg.status
 
 		// Check if the step has completed
 		if msg.status.Status == statusSuccess || msg.status.Status == statusFailed {
@@ -47,7 +47,6 @@ func (m SequentialTaskRunnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return mm, nil
 			}
 		}
-
 		// If still in-progress, just continue ticking
 		return m, waitForTaskProgress(m.taskChan)
 
