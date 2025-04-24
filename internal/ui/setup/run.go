@@ -1,9 +1,9 @@
-package initialization
+package setup
 
 import (
 	"fmt"
+	"github.com/ashleymorris2/booty/internal/ui/components/seqtask"
 
-	"github.com/ashleymorris2/booty/internal/ui/seqtask"
 	tea "github.com/charmbracelet/bubbletea"
 )
 

@@ -3,6 +3,7 @@ package listselect
 import (
 	"fmt"
 	"github.com/ashleymorris2/booty/internal/ui/styles"
+	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"io"
@@ -14,8 +15,10 @@ type SelectorItem struct {
 	Value           string
 }
 
-func (s SelectorItem) Title() string       { return s.TitleText }
+func (s SelectorItem) Title() string { return s.TitleText }
+
 func (s SelectorItem) Description() string { return s.DescriptionText }
+
 func (s SelectorItem) FilterValue() string { return s.TitleText }
 
 type itemDelegate struct{}
@@ -36,16 +39,16 @@ func (d itemDelegate) Render(w io.Writer, m list.Model, index int, listItem list
 	desc := i.DescriptionText
 
 	if isSelected {
-		cursor = styles.Cursor
-		title = styles.HighlightedListItem.Render(title)
-		desc = styles.HighlightedListDesc.Render(desc)
+		cursor = styles.List.Cursor
+		title = styles.List.Highlighted.Render(title)
+		desc = styles.List.HighlightedDesc.Render(desc)
 	} else {
-		title = styles.ListItem.Render(title)
-		desc = styles.ListDesc.Render(desc)
+		title = styles.List.Item.Render(title)
+		desc = styles.List.Description.Render(desc)
 	}
 
-	fmt.Fprintf(w, "%s %s\n", cursor, title)
-	fmt.Fprintf(w, "%s %s\n", cursor, desc)
+	_, _ = fmt.Fprintf(w, "%s %s\n", cursor, title)
+	_, _ = fmt.Fprintf(w, "%s %s\n", cursor, desc)
 }
 
 type ListSelectorModel struct {
@@ -64,17 +67,27 @@ func New(title string, items []SelectorItem) ListSelectorModel {
 	l := list.New(listItems, itemDelegate{}, 40, 20)
 
 	l.Title = title
+	l.Styles.Title = styles.List.Title
 
-	l.Styles.Title = styles.Title
+	l.FilterInput.PromptStyle = styles.List.FilterPrompt
 
-	l.FilterInput.PromptStyle = styles.FilterPrompt
+	l.Help.Styles.ShortKey = styles.List.Help
+	l.Help.Styles.ShortDesc = styles.List.HelpDesc
+	l.Help.Styles.FullKey = styles.List.Help
+	l.Help.Styles.FullDesc = styles.List.HelpDesc
 
-	l.Help.Styles.ShortKey = styles.Help
-	l.Help.Styles.ShortDesc = styles.HelpDesc
-	l.Help.Styles.FullKey = styles.Help
-	l.Help.Styles.FullDesc = styles.HelpDesc
+	l.Styles.PaginationStyle = styles.List.Pagination
 
-	l.Styles.PaginationStyle = styles.Pagination
+	l.AdditionalShortHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			keys.Enter,
+		}
+	}
+	l.AdditionalFullHelpKeys = func() []key.Binding {
+		return []key.Binding{
+			keys.Enter,
+		}
+	}
 
 	return ListSelectorModel{list: l}
 }

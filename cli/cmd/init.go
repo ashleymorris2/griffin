@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/ashleymorris2/booty/internal/core/initialization"
+	"github.com/ashleymorris2/booty/internal/ui/setup"
 	"github.com/spf13/cobra"
 )
 
@@ -25,7 +25,7 @@ Re-run this command anytime to recreate or verify your setup.
 Example:
   booty init`,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		err := initialization.Run()
+		err := setup.Run()
 		if err != nil {
 			return err
 		}
@@ -36,5 +36,5 @@ Example:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().BoolVar(&initOpts.SkipExample, "no-example", false, "Skip generating the example config file")
+	initCmd.Flags().BoolVar(&initOpts.SkipExample, "no-example", false, "Skip generating the example blueprint")
 }

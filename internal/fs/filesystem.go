@@ -107,7 +107,7 @@ func WriteToSubdirectory(subDir string, filename string, file []byte) (string, e
 
 func ListFilesInSubDirectory(subDir string) ([]string, error) {
 	home, _ := os.UserHomeDir()
-	configDir := filepath.Join(home, ".devsetup", "config")
+	configDir := filepath.Join(home, ".devsetup", subDir)
 
 	files, err := filepath.Glob(filepath.Join(configDir, "*.yml"))
 	if err != nil {

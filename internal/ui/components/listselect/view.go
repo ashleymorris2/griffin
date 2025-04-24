@@ -1,6 +1,9 @@
 package listselect
 
-import tea "github.com/charmbracelet/bubbletea"
+import (
+	"github.com/charmbracelet/bubbles/key"
+	tea "github.com/charmbracelet/bubbletea"
+)
 
 type ItemSelectedMsg struct {
 	Value string
@@ -15,14 +18,14 @@ func (m ListSelectorModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
-		switch msg.String() {
-		case "enter":
+		switch {
+		case key.Matches(msg, keys.Enter):
 			if item, ok := m.list.SelectedItem().(SelectorItem); ok {
 				m.done = true
 				m.Result = item.Value
 				return m, tea.Quit
 			}
-		case "q", "ctrl+c":
+		case msg.String() == "q" || msg.String() == "ctrl+c":
 			m.quitting = true
 			return m, tea.Quit
 		}

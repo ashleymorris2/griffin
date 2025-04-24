@@ -1,12 +1,12 @@
-package initialization
+package setup
 
 import (
 	"fmt"
+	"github.com/ashleymorris2/booty/internal/ui/components/seqtask"
 	"path/filepath"
 
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
-	"github.com/ashleymorris2/booty/internal/ui/seqtask"
 )
 
 const setupFolderPath = ".devsetup"

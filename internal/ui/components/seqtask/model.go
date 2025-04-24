@@ -46,7 +46,7 @@ func New(tasks []SequentialTask, initialTitle string, finalTitle string) Sequent
 	}
 }
 
-// getNextTask returns the next initialization task to Run, the updated model, and a boolean
+// getNextTask returns the next setup task to Run, the updated model, and a boolean
 // indicating whether a task was available.
 //
 // The model is passed and returned by value, which is intentional. In Bubble Tea,
