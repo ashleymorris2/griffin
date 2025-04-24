@@ -1,6 +1,7 @@
 package menu
 
 import (
+	"errors"
 	"fmt"
 	"github.com/ashleymorris2/booty/internal/ui/styles"
 	"github.com/charmbracelet/bubbles/key"
@@ -60,6 +61,20 @@ type Model struct {
 	quitting bool
 	done     bool
 	Result   string
+}
+
+func Show(items []Item) (Model, error) {
+	program := tea.NewProgram(New("Choose a configuration to run", items))
+	res, err := program.Run()
+	if err != nil {
+		return Model{}, fmt.Errorf("error: %s", err)
+	}
+
+	if m, ok := res.(Model); ok {
+		return m, nil
+	}
+
+	return Model{}, errors.New("unexpected result: model type mismatch")
 }
 
 func New(title string, items []Item) Model {

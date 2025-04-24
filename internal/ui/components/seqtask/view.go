@@ -24,7 +24,7 @@ func (m SequentialTaskRunnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case initCompleteMsg:
 		mm, nextTask, ok := m.getNextTask()
 		if ok {
-			executeTaskAsync(nextTask, mm.taskChan)
+			executeTask(nextTask, mm.taskChan)
 			return mm, waitForTaskProgress(mm.taskChan)
 		}
 
@@ -39,7 +39,7 @@ func (m SequentialTaskRunnerModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			mm, nextTask, ok := m.getNextTask()
 			if ok {
 				// Execute the next getNextTask and wait for progress
-				executeTaskAsync(nextTask, mm.taskChan)
+				executeTask(nextTask, mm.taskChan)
 				return mm, waitForTaskProgress(mm.taskChan)
 			} else {
 				// No more steps to Run

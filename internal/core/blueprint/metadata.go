@@ -12,22 +12,6 @@ type Metadata struct {
 	FilePath    string `yaml:"-"`
 }
 
-func ReadMetadataFromFile(path string) (Metadata, error) {
-	var meta Metadata
-
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return meta, err
-	}
-
-	if err := yaml.Unmarshal(data, &meta); err != nil {
-		return meta, err
-	}
-
-	meta.FilePath = path
-	return meta, nil
-}
-
 type ReadResult struct {
 	Index int
 	Item  Metadata
@@ -47,7 +31,7 @@ func ReadMetadataFromFiles(files []string) chan ReadResult {
 			limit <- struct{}{}        // Acquire a slot, blocks if already at the set limit
 			defer func() { <-limit }() // Release slot once complete
 
-			data, err := ReadMetadataFromFile(file)
+			data, err := readMetadataFromFile(file)
 			if err != nil {
 				results <- ReadResult{Index: i, Err: err}
 				return
@@ -64,4 +48,20 @@ func ReadMetadataFromFiles(files []string) chan ReadResult {
 	close(results)
 
 	return results
+}
+
+func readMetadataFromFile(path string) (Metadata, error) {
+	var meta Metadata
+
+	data, err := os.ReadFile(path)
+	if err != nil {
+		return meta, err
+	}
+
+	if err := yaml.Unmarshal(data, &meta); err != nil {
+		return meta, err
+	}
+
+	meta.FilePath = path
+	return meta, nil
 }

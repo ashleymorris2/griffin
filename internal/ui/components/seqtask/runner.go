@@ -22,18 +22,18 @@ type taskStatus struct {
 	Message string
 }
 
-// progressMsg is sent to the update loop when a task has progressed in executeTaskAsync
+// progressMsg is sent to the update loop when a task has progressed in executeTask
 type progressMsg struct {
 	stepId string
 	status taskStatus
 }
 
-// executeTaskAsync launches a background goroutine that runs a single SequentialTask.
+// executeTask launches a background goroutine that runs a single SequentialTask.
 // It sends progressMsg status updates (pending → in-progress → success/failure) to the provided channel.
 //
 // This design keeps the UI responsive by offloading long-running operations
 // to a separate goroutine and communicating results back via progressMsg values.
-func executeTaskAsync(task SequentialTask, ch chan progressMsg) {
+func executeTask(task SequentialTask, ch chan progressMsg) {
 	go func() {
 		// Send "pending" status immediately
 		ch <- progressMsg{
