@@ -1,8 +1,10 @@
 title: "Hello World"
-description: "Prints 'Hello, world!' to the terminal"
+description: "Prints Hello World in parallel ways"
 
 steps:
-  - label: "Print Hello World"
-    uses: shell
-    with:
-      script: echo "Hello, world!"
+  - label: "Say Hello"
+    tasks:
+      - label: "Hello English"
+        uses: shell
+        with:
+          script: echo "Hello, World!"
