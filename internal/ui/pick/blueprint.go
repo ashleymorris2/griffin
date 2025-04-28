@@ -1,13 +1,13 @@
 package pick
 
 import (
-	"github.com/ashleymorris2/booty/internal/core/blueprint"
+	"github.com/ashleymorris2/booty/internal/fs"
 	"github.com/ashleymorris2/booty/internal/ui/components/menu"
 )
 
 func BlueprintFrom(files []string) (string, error) {
 
-	var results = blueprint.ReadMetadataFromFiles(files)
+	var results = fs.ReadMetadataFromFiles(files)
 
 	items := make([]menu.Item, len(files))
 	for res := range results {

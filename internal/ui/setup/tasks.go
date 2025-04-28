@@ -2,11 +2,10 @@ package setup
 
 import (
 	"fmt"
-	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
-	"path/filepath"
-
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
+	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
+	"path/filepath"
 )
 
 const setupFolderPath = ".devsetup"

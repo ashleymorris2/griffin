@@ -1,4 +1,4 @@
-package blueprint
+package fs
 
 import (
 	"gopkg.in/yaml.v3"

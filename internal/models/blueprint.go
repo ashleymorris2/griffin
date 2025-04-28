@@ -1,4 +1,4 @@
-package blueprint
+package models
 
 type Blueprint struct {
 	Title       string `yaml:"title"`
@@ -10,6 +10,12 @@ type Blueprint struct {
 type Step struct {
 	Label string `yaml:"label"`
 	Tasks []Task `yaml:"tasks"`
+}
+
+func (s *Step) Run() error {
+	for _, task := range s.Tasks {
+
+	}
 }
 
 // Task = Single executable action

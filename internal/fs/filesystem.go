@@ -2,6 +2,8 @@ package fs
 
 import (
 	"fmt"
+	"github.com/ashleymorris2/booty/internal/models"
+	"gopkg.in/yaml.v3"
 	"os"
 	"path/filepath"
 )
@@ -118,4 +120,18 @@ func ListFilesInSubDirectory(subDir string) ([]string, error) {
 	}
 
 	return files, nil
+}
+
+func ReadBlueprintFromFile(filePath string) (*models.Blueprint, error) {
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, err
+	}
+
+	var bp models.Blueprint
+	if err := yaml.Unmarshal(data, &bp); err != nil {
+		return nil, err
+	}
+
+	return &bp, nil
 }

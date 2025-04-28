@@ -1,7 +1,7 @@
 package runner
 
 import (
-	"github.com/ashleymorris2/booty/internal/core/blueprint"
+	"github.com/ashleymorris2/booty/internal/models"
 	"github.com/ashleymorris2/booty/internal/modules"
 )
 
@@ -10,10 +10,12 @@ type Runner struct {
 	stopOnError bool                      // configuration: stop blueprint if a task fails
 }
 
-func (r *Runner) RunBlueprint(bp blueprint.Blueprint) error {
+func (r *Runner) RunBlueprint(bp models.Blueprint) error {
+	//step := newStepRunner(r.modules, r.stopOnError)
+
 	for _, step := range bp.Steps {
-		runner := NewStepRunner(r.modules, r.stopOnError)
-		err := StepRunner.RunStep(step)
+
+		err := step.Run()
 		if err != nil {
 			return err
 		}
