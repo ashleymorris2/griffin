@@ -12,12 +12,6 @@ type Step struct {
 	Tasks []Task `yaml:"tasks"`
 }
 
-func (s *Step) Run() error {
-	for _, task := range s.Tasks {
-
-	}
-}
-
 // Task = Single executable action
 type Task struct {
 	Label string                 `yaml:"label"`

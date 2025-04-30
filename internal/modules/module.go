@@ -3,7 +3,8 @@ package modules
 import "github.com/ashleymorris2/booty/internal/models"
 
 type Module interface {
-	Run(t models.Task) error
+	Name() string            // Friendly name of this module e.g. "docker, git, ssh"
+	Run(t models.Task) error // The specific implementation of this module
 }
 
 type ModuleRegistry struct {
