@@ -2,21 +2,22 @@ package runner
 
 import (
 	"fmt"
+	"sync"
+
 	"github.com/ashleymorris2/booty/internal/models"
 	"github.com/ashleymorris2/booty/internal/modules"
-	"sync"
 )
 
 type Runner struct {
 	modules     *modules.ModuleRegistry // All the available modules
-	stopOnError bool                    // configuration: stop runner if a task fails
+	stopOnError bool                    // Configuration: stop runner if a task fails
 	maxWorkers  int
 }
 
 func New(modules *modules.ModuleRegistry, stopOnError bool, maxWorkers int) *Runner {
-	//if modules == nil {
+	// if modules == nil {
 	//	modules = make(map[string]modules.)
-	//}
+	// }
 	return &Runner{
 		modules:     modules,
 		stopOnError: stopOnError,
@@ -51,7 +52,22 @@ func (r *Runner) runTasks(tasks []models.Task) {
 	errChan := make(chan error, 1)
 	var wg sync.WaitGroup
 
-	// Start worker goroutines
+	r.startWorkers(workers, taskChan, errChan, &wg)
+	r.dispatchTasks(tasks, taskChan)
+	// Send tasks to workers
+	go func() {
+		for _, task := range tasks {
+			taskChan <- task
+		}
+		close(taskChan)
+	}()
+
+	wg.Wait() // Wait for the workers to finish
+}
+
+// startWorkers starts a pool of count 'workers', accepts a readonly channel to read tasks from,
+// a write only channel to send errors to and a WaitGroup to signal that workers have completed all available tasks
+func (r *Runner) startWorkers(workers int, taskChan <-chan models.Task, errChan chan<- error, wg *sync.WaitGroup) {
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func(workerID int) {
@@ -67,14 +83,13 @@ func (r *Runner) runTasks(tasks []models.Task) {
 			}
 		}(i)
 	}
+}
 
-	// Send tasks to workers
+func (r *Runner) dispatchTasks(tasks []models.Task, taskChan chan<- models.Task) {
 	go func() {
 		for _, task := range tasks {
 			taskChan <- task
 		}
 		close(taskChan)
 	}()
-
-	wg.Wait() // Wait for the workers to finish
 }
