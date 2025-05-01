@@ -36,5 +36,5 @@ Example:
 
 func init() {
 	rootCmd.AddCommand(initCmd)
-	initCmd.Flags().BoolVar(&initOpts.SkipExample, "no-example", false, "Skip generating the example blueprint")
+	initCmd.Flags().BoolVar(&initOpts.SkipExample, "no-example", false, "Skip generating the example runner")
 }

@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"github.com/ashleymorris2/booty/internal/fs"
+	"github.com/ashleymorris2/booty/internal/modules"
+	"github.com/ashleymorris2/booty/internal/runner"
 	"github.com/ashleymorris2/booty/internal/ui/pick"
 	"github.com/spf13/cobra"
 	"os"
@@ -47,7 +49,7 @@ func selectBlueprintPath() (string, error) {
 
 	path, err := pick.BlueprintFrom(files)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error selecting blueprint: %v\n", err)
+		_, _ = fmt.Fprintf(os.Stderr, "Error selecting runner: %v\n", err)
 		return "", err
 	}
 
@@ -57,6 +59,17 @@ func selectBlueprintPath() (string, error) {
 }
 
 func runBlueprint(path string) error {
+	bp, err := fs.ReadBlueprintFromFile(path)
+	if err != nil {
+		return fmt.Errorf("failed to read blueprint: %w", err)
+	}
 
+	m := modules.RegisterModules()
+	r := runner.New(m, false, 10)
+
+	err = r.RunBlueprint(bp)
+	if err != nil {
+		return err
+	}
 	return nil
 }

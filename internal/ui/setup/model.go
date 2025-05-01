@@ -1,6 +1,8 @@
-package taskrunner
+package setup
 
-import "github.com/charmbracelet/bubbles/spinner"
+import (
+	"github.com/charmbracelet/bubbles/spinner"
+)
 
 type SequentialTask struct {
 	ID      string

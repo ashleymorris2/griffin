@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/ashleymorris2/booty/internal/files"
 	"github.com/ashleymorris2/booty/internal/fs"
-	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
 	"path/filepath"
 )
 
@@ -14,8 +13,8 @@ const (
 	stepCreateExample = "create-example-config" // Create an example config file (disable with --example=false
 )
 
-func tasks() []taskrunner.SequentialTask {
-	return []taskrunner.SequentialTask{
+func tasks() []SequentialTask {
+	return []SequentialTask{
 		{
 			ID:      stepPrepareEnv,
 			Message: "Preparing local environment...",

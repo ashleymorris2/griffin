@@ -5,10 +5,6 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-type ItemSelectedMsg struct {
-	Value string
-}
-
 func (m Model) Init() tea.Cmd {
 	return nil
 }

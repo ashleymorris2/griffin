@@ -1,7 +1,8 @@
-package taskrunner
+package setup
 
 import (
 	"fmt"
+
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"

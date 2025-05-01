@@ -17,7 +17,7 @@ func BlueprintFrom(files []string) (string, error) {
 		items[res.Index] = menu.NewItem(res.Item.Title, res.Item.Description, res.Item.FilePath)
 	}
 
-	m, err := menu.Show(items)
+	m, err := menu.Show("Choose a configuration to run", items)
 	if err != nil {
 		return "", err
 	}
