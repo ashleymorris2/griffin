@@ -54,13 +54,6 @@ func (r *Runner) runTasks(tasks []models.Task) {
 
 	r.startWorkers(workers, taskChan, errChan, &wg)
 	r.dispatchTasks(tasks, taskChan)
-	// Send tasks to workers
-	go func() {
-		for _, task := range tasks {
-			taskChan <- task
-		}
-		close(taskChan)
-	}()
 
 	wg.Wait() // Wait for the workers to finish
 }

@@ -7,7 +7,6 @@ import (
 	"github.com/ashleymorris2/booty/internal/runner"
 	"github.com/ashleymorris2/booty/internal/ui/pick"
 	"github.com/spf13/cobra"
-	"os"
 )
 
 // runCmd represents the run command
@@ -20,16 +19,18 @@ and usage of using your command. For example:
 Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
-	Run: func(cmd *cobra.Command, args []string) {
+	RunE: func(cmd *cobra.Command, args []string) error {
 		path, err := selectBlueprintPath()
 		if err != nil {
-			return
+			return err
 		}
 
 		err = runBlueprint(path)
 		if err != nil {
-			return
+			return err
 		}
+
+		return nil
 	},
 }
 
@@ -40,8 +41,7 @@ func init() {
 func selectBlueprintPath() (string, error) {
 	files, err := fs.ListFilesInSubDirectory("config")
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error listing files: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("error listing files: %v\\n\"", err)
 	}
 	if len(files) == 0 {
 		return "", fmt.Errorf("no files found in 'config' directory")
@@ -49,8 +49,7 @@ func selectBlueprintPath() (string, error) {
 
 	path, err := pick.BlueprintFrom(files)
 	if err != nil {
-		_, _ = fmt.Fprintf(os.Stderr, "Error selecting runner: %v\n", err)
-		return "", err
+		return "", fmt.Errorf("error selecting runner %w", err)
 	}
 
 	fmt.Println("Selected:", path)
@@ -64,12 +63,13 @@ func runBlueprint(path string) error {
 		return fmt.Errorf("failed to read blueprint: %w", err)
 	}
 
-	m := modules.RegisterModules()
+	m := modules.Register()
 	r := runner.New(m, false, 10)
 
 	err = r.RunBlueprint(bp)
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
