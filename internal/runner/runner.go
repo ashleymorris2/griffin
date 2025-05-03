@@ -12,9 +12,10 @@ type Runner struct {
 	modules     *modules.ModuleRegistry // All the available modules
 	stopOnError bool                    // Configuration: stop runner if a task fails
 	maxWorkers  int
+	emit        func(Event)
 }
 
-func New(modules *modules.ModuleRegistry, stopOnError bool, maxWorkers int) *Runner {
+func New(modules *modules.ModuleRegistry, emit func(Event), stopOnError bool, maxWorkers int) *Runner {
 	// if modules == nil {
 	//	modules = make(map[string]modules.)
 	// }
@@ -22,6 +23,7 @@ func New(modules *modules.ModuleRegistry, stopOnError bool, maxWorkers int) *Run
 		modules:     modules,
 		stopOnError: stopOnError,
 		maxWorkers:  maxWorkers,
+		emit:        emit,
 	}
 }
 
@@ -67,8 +69,11 @@ func (r *Runner) startWorkers(workers int, taskChan <-chan models.Task, errChan 
 			defer wg.Done()
 			for task := range taskChan {
 				if module, ok := r.modules.Get(task.Uses); ok {
+					r.emit(TaskStarted{StepLabel: task.Label, TaskLabel: task.Label})
 					if err := module.Run(task); err != nil {
 						errChan <- fmt.Errorf("task %s by worker %d failed: %w", task.Uses, workerID, err)
+					} else {
+						r.emit(TaskFinished{TaskLabel: task.Label})
 					}
 				} else {
 					errChan <- fmt.Errorf("worker %d: no module found for task: %s", workerID, task.Uses)

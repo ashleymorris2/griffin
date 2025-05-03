@@ -1,4 +1,4 @@
-package ui
+package messages
 
 // Sent when a task starts running
 type TaskStartedMsg struct {

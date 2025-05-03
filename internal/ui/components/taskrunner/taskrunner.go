@@ -2,12 +2,10 @@ package taskrunner
 
 import (
 	"fmt"
-	"github.com/ashleymorris2/booty/internal/ui"
+	"github.com/ashleymorris2/booty/internal/ui/messages"
 	tea "github.com/charmbracelet/bubbletea"
 	"strings"
 )
-
-// internal/ui/runner/accordion_model.go
 
 type AccordionModel struct {
 	Expanded     map[string]bool     // taskLabel -> expanded
@@ -47,14 +45,13 @@ func (m AccordionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			label := m.Tasks[m.CurrentIndex]
 			m.Expanded[label] = !m.Expanded[label]
 		}
-
-	case ui.TaskStartedMsg:
+	case messages.TaskStartedMsg:
 		m.Status[msg.TaskLabel] = "running"
-	case ui.TaskOutputMsg:
+	case messages.TaskOutputMsg:
 		m.Output[msg.TaskLabel] = append(m.Output[msg.TaskLabel], msg.Content)
-	case ui.TaskFinishedMsg:
+	case messages.TaskFinishedMsg:
 		m.Status[msg.TaskLabel] = "done"
-	case ui.TaskFailedMsg:
+	case messages.TaskFailedMsg:
 		m.Status[msg.TaskLabel] = "failed"
 	}
 

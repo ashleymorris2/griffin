@@ -5,7 +5,10 @@ import (
 	"github.com/ashleymorris2/booty/internal/fs"
 	"github.com/ashleymorris2/booty/internal/modules"
 	"github.com/ashleymorris2/booty/internal/runner"
+	"github.com/ashleymorris2/booty/internal/ui/components/taskrunner"
+	"github.com/ashleymorris2/booty/internal/ui/messages"
 	"github.com/ashleymorris2/booty/internal/ui/pick"
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/spf13/cobra"
 )
 
@@ -58,18 +61,50 @@ func selectBlueprintPath() (string, error) {
 }
 
 func runBlueprint(path string) error {
+	// 1. Load blueprint
 	bp, err := fs.ReadBlueprintFromFile(path)
 	if err != nil {
 		return fmt.Errorf("failed to read blueprint: %w", err)
 	}
 
-	m := modules.Register()
-	r := runner.New(m, false, 10)
-
-	err = r.RunBlueprint(bp)
-	if err != nil {
-		return err
+	// 2. Extract task labels (flatten all steps)
+	var taskLabels []string
+	for _, step := range bp.Steps {
+		for _, task := range step.Tasks {
+			taskLabels = append(taskLabels, task.Label)
+		}
 	}
 
-	return nil
+	// 3. Create TUI model
+	model := taskrunner.NewAccordionModel(taskLabels)
+	program := tea.NewProgram(model)
+
+	// 4. Create event -> tea.Msg mapper
+	emit := func(ev runner.Event) {
+		switch e := ev.(type) {
+		case runner.TaskStarted:
+			program.Send(messages.TaskStartedMsg{StepLabel: e.StepLabel, TaskLabel: e.TaskLabel})
+		case runner.TaskOutput:
+			program.Send(messages.TaskOutputMsg{TaskLabel: e.TaskLabel, Content: e.Content})
+		case runner.TaskFinished:
+			program.Send(messages.TaskFinishedMsg{TaskLabel: e.TaskLabel})
+		case runner.TaskFailed:
+			program.Send(messages.TaskFailedMsg{TaskLabel: e.TaskLabel, Err: e.Err})
+		}
+	}
+
+	// 5. Register modules with OnOutput callback
+	mod := modules.Register(func(line string) {
+		emit(runner.TaskOutput{TaskLabel: model.Tasks[model.CurrentIndex], Content: line})
+	})
+
+	// 6. Create and start runner
+	r := runner.New(mod, emit, false, 10)
+	go func() {
+		_ = r.RunBlueprint(bp)
+	}()
+
+	// 7. Run the TUI
+	_, err = program.Run()
+	return err
 }
